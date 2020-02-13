@@ -3,6 +3,11 @@ using SparseArrays
 
 GrB_init(GrB_NONBLOCKING)
 
+const desc = GrB_Descriptor()
+GrB_Descriptor_new(desc)
+GrB_Descriptor_set(desc, GrB_INP1, GrB_TRAN)
+#GrB_Descriptor_set(desc, GrB_OUTP, GrB_REPLACE)
+
 function sm2gbm(A::SparseMatrixCSC{Int64, Int64})
     res = GrB_Matrix{Int64}()
     GrB_Matrix_new(res, GrB_INT64, size(A, 1), size(A, 2))
@@ -38,7 +43,7 @@ function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     C = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
 
     #GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
-    GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, GrB_NULL)
+    GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
 
     return C
 end
@@ -46,7 +51,7 @@ end
 function mm!(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64}, C::GrB_Matrix{Int64})
 
     #GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
-    GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, GrB_NULL)
+    GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
 
     return C
 end
@@ -55,6 +60,5 @@ end
 function SM(A::GrB_Matrix{Int64})
     V = gbv_new(size(A, 1))
     GrB_reduce(V, GrB_NULL, GrB_NULL, GxB_PLUS_INT64_MONOID, A, GrB_NULL)
-
     return V
 end

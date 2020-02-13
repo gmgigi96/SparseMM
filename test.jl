@@ -15,3 +15,10 @@ mgb = @btime mm($As, $Bs)
 m2 = gbm2sm(mgb)
 
 @assert m1 == m2
+
+m4 = @btime $A .// sum($B, dims=2)
+
+V = SM(Bs)
+m3 = @btime dmv($As, $V)
+
+@assert m3 == m4
