@@ -31,10 +31,6 @@ function gbv_new(l)
 end
 
 function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
-
-    #C = GrB_Matrix{Int64}()
-    #GrB_Matrix_new(C, GrB_INT64, GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
-
     C = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
 
     #GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
@@ -44,11 +40,8 @@ function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
 end
 
 function mm!(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64}, C::GrB_Matrix{Int64})
-
     #GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
     GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, GrB_NULL)
-
-    return C
 end
 
 
