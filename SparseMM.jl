@@ -46,7 +46,7 @@ function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     C = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
 
     #GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
-    GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
+    GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, GrB_NULL)
 
     return C
 end
@@ -65,7 +65,7 @@ end
 
 
 function dmv(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
-    @assert GrB_Matrix_ncols(A) == GrB_Vector_size(B)
+    @assert GrB_Matrix_ncols(A) == GrB_Matrix_nrows(B)
     res = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
     GrB_eWiseMult(res, GrB_NULL, GrB_NULL, INTDIV, A, B, GrB_NULL)
     return res
