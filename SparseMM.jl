@@ -21,6 +21,15 @@ function gbm2sm(A::GrB_Matrix{Int64})
     return SparseArrays.sparse(I, J, X)
 end
 
+function v2m(V::GrB_Vector{Int64})
+    I, X = GrB_Vector_extractTuples(V)
+    cols = GrB_Vector_size(V)
+    J = ZeroBasedIndex.(zeros(Int64, cols))
+    res = gbm_new(cols, 1)
+    GrB_Matrix_build(res, I, J, X, cols, GrB_FIRST_INT64)
+    return res
+end
+
 function gbm_new(r, c)
     C = GrB_Matrix{Int64}()
     GrB_Matrix_new(C, GrB_INT64, r, c)
@@ -56,9 +65,9 @@ function SM(A::GrB_Matrix{Int64})
 end
 
 
-function dmv(A::GrB_Matrix{Int64}, V::GrB_Vector{Int64})
-    @assert GrB_Matrix_ncols(A) == GrB_Vector_size(V)
+function dmv(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
+    @assert GrB_Matrix_ncols(A) == GrB_Vector_size(B)
     res = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
-    GrB_eWiseMult(res, GrB_NULL, GrB_NULL, INTDIV, V, GrB_NULL)
+    GrB_eWiseMult(res, GrB_NULL, GrB_NULL, INTDIV, A, B, GrB_NULL)
     return res
 end
