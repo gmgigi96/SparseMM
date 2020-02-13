@@ -24,6 +24,12 @@ function gbm_new(r, c)
     return C
 end
 
+function gbv_new(l)
+    V = GrB_Vector{Int64}()
+    GrB_Vector_new(V, GrB_INT64, l)
+    return V
+end
+
 function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
 
     #C = GrB_Matrix{Int64}()
@@ -43,4 +49,12 @@ function mm!(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64}, C::GrB_Matrix{Int64})
     GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, GrB_NULL)
 
     return C
+end
+
+
+function SM(A::GrB_Matrix{Int64})
+    V = gbv_new(size(A, 1))
+    GrB_reduce(V, GrB_NULL, GrB_NULL, GxB_PLUS_INT64_MONOID, A, GrB_NULL)
+
+    return V
 end
