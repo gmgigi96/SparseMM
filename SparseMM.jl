@@ -3,6 +3,9 @@ using SparseArrays
 
 GrB_init(GrB_NONBLOCKING)
 
+const INTDIV = GrB_BinaryOp()
+GrB_BinaryOp_new(INTDIV, (//), GrB_INT64, GrB_INT64, GrB_INT64)
+
 function sm2gbm(A::SparseMatrixCSC{Int64, Int64})
     res = GrB_Matrix{Int64}()
     GrB_Matrix_new(res, GrB_INT64, size(A, 1), size(A, 2))
@@ -50,4 +53,12 @@ function SM(A::GrB_Matrix{Int64})
     GrB_reduce(V, GrB_NULL, GrB_NULL, GxB_PLUS_INT64_MONOID, A, GrB_NULL)
 
     return V
+end
+
+
+function dmv(A::GrB_Matrix{Int64}, V::GrB_Vector{Int64})
+    @assert GrB_Matrix_ncols(A) == GrB_Vector_size(V)
+    res = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    GrB_eWiseMult(res, GrB_NULL, GrB_NULL, INTDIV, V, GrB_NULL)
+    return res
 end
