@@ -3,9 +3,6 @@ using SparseArrays
 
 GrB_init(GrB_NONBLOCKING)
 
-const INTDIV = GrB_BinaryOp()
-GrB_BinaryOp_new(INTDIV, (//), GrB_INT64, GrB_INT64, GrB_INT64)
-
 function sm2gbm(A::SparseMatrixCSC{Int64, Int64})
     res = GrB_Matrix{Int64}()
     GrB_Matrix_new(res, GrB_INT64, size(A, 1), size(A, 2))
@@ -56,18 +53,22 @@ function mm!(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64}, C::GrB_Matrix{Int64})
     GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, GrB_NULL)
 end
 
-
-function SM(A::GrB_Matrix{Int64})
+function sm(A::GrB_Matrix{Int64})
     V = gbv_new(size(A, 1))
     GrB_reduce(V, GrB_NULL, GrB_NULL, GxB_PLUS_INT64_MONOID, A, GrB_NULL)
     return V
 end
 
-
 function dmv(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     @assert GrB_Matrix_ncols(A) == GrB_Matrix_nrows(B)
     res = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
-    GrB_eWiseMult(res, GrB_NULL, GrB_NULL, INTDIV, A, B, GrB_NULL)
+
+    for j in 0:GrB_Matrix_ncols(A)-1
+        # select col i from A -> q
+        # q .* v -> tmp (vedi GrB_eWiseMult)
+        # copy tmp in res[i]
+    end
+
     return res
 end
 
