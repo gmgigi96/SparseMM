@@ -3,15 +3,8 @@ using SparseArrays
 
 GrB_init(GrB_NONBLOCKING)
 
-<<<<<<< HEAD
-const desc = GrB_Descriptor()
-GrB_Descriptor_new(desc)
-GrB_Descriptor_set(desc, GrB_INP1, GrB_TRAN)
-#GrB_Descriptor_set(desc, GrB_OUTP, GrB_REPLACE)
-=======
 const INTDIV = GrB_BinaryOp()
 GrB_BinaryOp_new(INTDIV, (//), GrB_INT64, GrB_INT64, GrB_INT64)
->>>>>>> 7e4c2bfa19213e793e36b5074a5d7fa993cad4fd
 
 function sm2gbm(A::SparseMatrixCSC{Int64, Int64})
     res = GrB_Matrix{Int64}()
