@@ -70,3 +70,13 @@ function dmv(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     GrB_eWiseMult(res, GrB_NULL, GrB_NULL, INTDIV, A, B, GrB_NULL)
     return res
 end
+
+function d(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
+    B_T = gbm_new(size(1,B), size(2, B))
+    GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
+    C = mm(A,B_T)
+    V = SM(A)
+    V_M = v2m(V)
+    res = dmv(A, V_M)
+    return res
+end
