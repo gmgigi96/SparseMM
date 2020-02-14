@@ -1,6 +1,10 @@
 using GraphBLASInterface, SuiteSparseGraphBLAS
 using SparseArrays
 
+const trans = GrB_Descriptor()
+GrB_Descriptor_new(trans)
+GrB_Descriptor_set(trans, GrB_INP0, GrB_TRAN)
+GrB_Descriptor_set(trans, GrB_INP1, GrB_TRAN)
 GrB_init(GrB_NONBLOCKING)
 
 function sm2gbm(A::SparseMatrixCSC{Int64, Int64})
@@ -87,17 +91,18 @@ function dmv(A::GrB_Matrix{Int64}, B::GrB_Vector{Int64})
 
     for j in 0:GrB_Matrix_ncols(A)-1
         # select col j from A -> tmp
-        GrB_Col_extract(tmp, GrB_NULL, GrB_NULL, A, GrB_ALL, 0, ZeroBasedIndex(j), GrB_NULL)
+        GrB_Col_extract(tmp, GrB_NULL, GrB_NULL, A, GrB_ALL, 0, ZeroBasedIndex(j), trans)
         # q .// v -> tmp
         GrB_eWiseMult(tmp, GrB_NULL, GrB_NULL, GxB_TIMES_DIV_UINT64, tmp, B, GrB_NULL)
         # copy tmp in res[j]
         GrB_Col_assign(res, GrB_NULL, GrB_NULL, tmp, GrB_ALL, 0, ZeroBasedIndex(j), GrB_NULL)
     end
-
+    res2 = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    GrB_transpose(res2,GrB_NULL,GrB_NULL,res,GrB_NULL)
     GrB_wait()  # flush pending transitions
     GrB_Vector_free(tmp)
-
-    return res
+    GrB_Matrix_free(res)
+    return res2
 end
 
 function dmv(A::GrB_Matrix{Int8}, B::GrB_Vector{Int64})
@@ -107,17 +112,19 @@ function dmv(A::GrB_Matrix{Int8}, B::GrB_Vector{Int64})
 
     for j in 0:GrB_Matrix_ncols(A)-1
         # select col j from A -> tmp
-        GrB_Col_extract(tmp, GrB_NULL, GrB_NULL, A, GrB_ALL, 0, ZeroBasedIndex(j), GrB_NULL)
+        GrB_Col_extract(tmp, GrB_NULL, GrB_NULL, A, GrB_ALL, 0, ZeroBasedIndex(j), trans)
         # q .// v -> tmp
         GrB_eWiseMult(tmp, GrB_NULL, GrB_NULL, GxB_TIMES_DIV_UINT8, tmp, B, GrB_NULL)
         # copy tmp in res[j]
         GrB_Col_assign(res, GrB_NULL, GrB_NULL, tmp, GrB_ALL, 0, ZeroBasedIndex(j), GrB_NULL)
     end
-
+    res2 = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    GrB_transpose(res2,GrB_NULL,GrB_NULL,res,GrB_NULL)
     GrB_wait()  # flush pending transitions
     GrB_Vector_free(tmp)
+    GrB_Matrix_free(res)
 
-    return res
+    return res2
 end
 
 function d(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
