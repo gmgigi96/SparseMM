@@ -3,7 +3,7 @@ using SparseArrays
 
 GrB_init(GrB_NONBLOCKING)
 
-function sm2gbm(A::SparseMatrixCSC{Int64, Int64})
+function sm2gbm(A::SparseMatrixCSC)
     res = GrB_Matrix{Int64}()
     GrB_Matrix_new(res, GrB_INT64, size(A, 1), size(A, 2))
     I, J, X = SparseArrays.findnz(A)
@@ -59,15 +59,22 @@ function sm(A::GrB_Matrix{Int64})
     return V
 end
 
-function dmv(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
-    @assert GrB_Matrix_ncols(A) == GrB_Matrix_nrows(B)
+function dmv(A::GrB_Matrix{Int64}, B::GrB_Vector{Int64})
+    @assert GrB_Matrix_ncols(A) == GrB_Vector_size(B)
     res = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    tmp = gbv_new(GrB_Vector_size(B))
 
     for j in 0:GrB_Matrix_ncols(A)-1
-        # select col i from A -> q
-        # q .* v -> tmp (vedi GrB_eWiseMult)
-        # copy tmp in res[i]
+        # select col j from A -> tmp
+        GrB_Col_extract(tmp, GrB_NULL, GrB_NULL, A, GrB_ALL, 0, ZeroBasedIndex(j), GrB_NULL)
+        # q .// v -> tmp
+        GrB_eWiseMult(tmp, GrB_NULL, GrB_NULL, GxB_TIMES_DIV_UINT64, tmp, B, GrB_NULL)
+        # copy tmp in res[j]
+        GrB_Col_assign(res, GrB_NULL, GrB_NULL, tmp, GrB_ALL, 0, ZeroBasedIndex(j), GrB_NULL)
     end
+
+    GrB_wait()  # flush pending transitions
+    GrB_Vector_free(tmp)
 
     return res
 end
