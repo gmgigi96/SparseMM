@@ -125,7 +125,7 @@ function d(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     #GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
     C = mm(A,B)
     V = sm(A)
-    res = dmv(A, V)
+    res = dmv(C, V)
     return res
 end
 
@@ -134,6 +134,6 @@ function d(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int8})
     #GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
     C = mm(A,B)
     V = sm(A)
-    res = dmv(A, V)
+    res = dmv(C, V)
     return res
 end
