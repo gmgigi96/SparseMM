@@ -51,7 +51,7 @@ function gbv_new_int8(l)
 end
 
 function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
-    C = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
+    C = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
 
     #GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
     GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, GrB_NULL)
@@ -60,7 +60,7 @@ function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
 end
 
 function mm(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int64})
-    C = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
+    C = gbm_new_int8(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
 
     #GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
     GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT8, A, B, GrB_NULL)
@@ -69,20 +69,20 @@ function mm(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int64})
 end
 
 function sm(A::GrB_Matrix{Int64})
-    V = gbv_new(size(A, 1))
+    V = gbv_new_int64(size(A, 1))
     GrB_reduce(V, GrB_NULL, GrB_NULL, GxB_PLUS_INT64_MONOID, A, GrB_NULL)
     return V
 end
 
 function sm(A::GrB_Matrix{Int8})
-    V = gbv_new(size(A, 1))
+    V = gbv_new_int8(size(A, 1))
     GrB_reduce(V, GrB_NULL, GrB_NULL, GxB_PLUS_INT8_MONOID, A, GrB_NULL)
     return V
 end
 
 function dmv(A::GrB_Matrix{Int64}, B::GrB_Vector{Int64})
     @assert GrB_Matrix_ncols(A) == GrB_Vector_size(B)
-    res = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    res = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
     tmp = gbv_new_int64(GrB_Vector_size(B))
 
     for j in 0:GrB_Matrix_ncols(A)-1
@@ -102,7 +102,7 @@ end
 
 function dmv(A::GrB_Matrix{Int8}, B::GrB_Vector{Int64})
     @assert GrB_Matrix_ncols(A) == GrB_Vector_size(B)
-    res = gbm_new(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    res = gbm_new_int8(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
     tmp = gbv_new_int8(GrB_Vector_size(B))
 
     for j in 0:GrB_Matrix_ncols(A)-1
@@ -121,18 +121,18 @@ function dmv(A::GrB_Matrix{Int8}, B::GrB_Vector{Int64})
 end
 
 function d(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
-    B_T = gbm_new_int64(size(B, 1), size(B, 2))
-    GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
-    C = mm(A,B_T)
+    #B_T = gbm_new_int64(size(B, 1), size(B, 2))
+    #GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
+    C = mm(A,B)
     V = sm(A)
     res = dmv(A, V)
     return res
 end
 
 function d(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int8})
-    B_T = gbm_new_int8(size(B, 1), size(B, 2))
-    GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
-    C = mm(A,B_T)
+    #B_T = gbm_new_int8(size(B, 1), size(B, 2))
+    #GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
+    C = mm(A,B)
     V = sm(A)
     res = dmv(A, V)
     return res

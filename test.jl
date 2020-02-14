@@ -3,8 +3,8 @@ using Random
 
 sparseN(N) = sparse(randperm(N), randperm(N), ones(Int64, N), N, N)
 
-A = sparseN(100000)
-B = sparseN(100000)
+A = sparseN(1000)
+B = sparseN(1000)
 
 m1 = @btime $A*$B'
 
@@ -13,6 +13,13 @@ Bs = sm2gbm(sparse(B'))
 mgb = @btime mm($As, $Bs)
 
 m2 = gbm2sm(mgb)
+
+@assert m1 == m2
+
+m1 = @btime (collect(A*B') .÷ sum(A, dims=2))
+
+m2 = @btime d($As, $Bs)
+m2 = gbm2sm(m2)
 
 @assert m1 == m2
 
@@ -31,6 +38,27 @@ V = sm(BS)
 RES = dmv(BS, V)
 
 println(collect(gbm2sm(RES)))
+
+
+
+B = sparse([2 0 4;
+            2 2 0;
+            0 0 2])
+
+VM = sparse([1 1;
+             0 1;
+             0 2])
+Bs = sm2gbm(B)
+VMs = sm2gbm(VM)
+V = sm(VMs)
+
+@GxB_fprint(V, GxB_COMPLETE)
+
+R = dmv(Bs, V)
+
+@assert gbm2sm(R) == [1 0 2; 2 2 0; 0 0 1]
+
+#println(collect(gbm2sm(R)))
 
 
 
@@ -69,9 +97,51 @@ end
 
 M0 = K(VV); M1 = K(EV); M2 = K(FV); M3 = K(CV);
 
-#∂_1 = M0 * M1'
-#∂_2 = (M1 * M2') .// sum(M1 , dims=2)
-#∂_3 = (M2 * M3') .// sum(M2, dims=2)
+∂_1 = M0 * M1'
+∂_2 = (M1 * M2') .÷ sum(M1, dims=2)
+∂_3 = (M2 * M3') .÷ sum(M2, dims=2)
+
+M1s = sm2gbm(M1)
+M2s = sm2gbm(M2)
+
+d2 = d(M1s, M2s)
+
+println(collect(gbm2sm(d2)))
+
+
+# ***************** #
+using LinearAlgebraicRepresentation
+Lar = LinearAlgebraicRepresentation
+
+V,CV = Lar.cuboidGrid([3,2,1]);
+
+function CV2FV(v)
+    return [[v[1], v[2], v[3], v[4]], [v[5], v[6], v[7], v[8]],
+            [v[1], v[2], v[5], v[6]], [v[3], v[4], v[7], v[8]],
+            [v[1], v[3], v[5], v[7]], [v[2], v[4], v[6], v[8]]]
+end
+
+function CV2EV(v)
+    return [[v[1], v[2]], [v[3], v[4]], [v[5], v[6]], [v[7], v[8]], [v[1], v[3]], [v[2], v[4]],
+            [v[5], v[7]], [v[6], v[8]], [v[1], v[5]], [v[2], v[6]], [v[3], v[7]], [v[4], v[8]]]
+end
+
+VV = [[v] for v in 1:size(V, 2)]
+FV = collect(Set{Array{Int64, 1}}(cat(map(CV2FV, CV), dims=2)))
+EV = collect(Set{Array{Int64, 1}}(cat(map(CV2EV, CV), dims=1)))
+
+function K(CV)
+    I = vcat([[k for h in CV[k]] for k in 1:length(CV)]...)
+    J = vcat(CV...)
+    Vals = [1 for k in 1:length(I)]
+    return SparseArrays.sparse(I, J, Vals)
+end
+
+M0 = K(VV); M1 = K(EV); M2 = K(FV); M3 = K(CV);
+
+∂_1 = M0 * M1'
+∂_2 = (M1 * M2') .÷ sum(M1, dims=2)
+∂_3 = (M2 * M3') .÷ sum(M2, dims=2)
 
 M1s = sm2gbm(M1)
 M2s = sm2gbm(M2)
