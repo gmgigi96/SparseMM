@@ -8,10 +8,10 @@ GrB_Descriptor_set(TRAN, GrB_INP0, GrB_TRAN)
 GrB_Descriptor_set(TRAN, GrB_INP1, GrB_TRAN)
 
 const DIV_INT64 = GrB_BinaryOp()
-GrB_BinaryOp_new(DIV_INT64, (//), GrB_INT64, GrB_INT64, GrB_INT64)
+GrB_BinaryOp_new(DIV_INT64, div, GrB_INT64, GrB_INT64, GrB_INT64)
 
 const DIV_INT8 = GrB_BinaryOp()
-GrB_BinaryOp_new(DIV_INT8, (//), GrB_INT64, GrB_INT64, GrB_INT8)
+GrB_BinaryOp_new(DIV_INT8, div, GrB_INT64, GrB_INT64, GrB_INT8)
 
 GrB_init(GrB_NONBLOCKING)
 
