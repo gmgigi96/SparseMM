@@ -35,7 +35,7 @@ function gbm2sm(A::GrB_Matrix{Int64})
     I, J, X = GrB_Matrix_extractTuples(A)
     I = map(e -> e.x+1, I)
     J = map(e -> e.x+1, J)
-    return SparseArrays.sparse(I, J, X, GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
+    return SparseArrays.sparse(I, J, X, GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
 end
 
 function gbm_new_int64(r, c)
