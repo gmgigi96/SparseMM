@@ -197,7 +197,14 @@ function d(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     res = dmv(C, V)
     return res
 end
-
+function sm2(A::GrB_Matrix{Int64})
+    l = size(A,1)
+    V = gbv_new_int64(l)
+    X = fill(2, l)
+    I = ZeroBasedIndex.(eachindex(X).-1)
+    GrB_Vector_build(V, I,X,l, GrB_FIRST_FP64)
+    return V
+end
 function d(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int8})
     #B_T = gbm_new_int8(size(B, 1), size(B, 2))
     #GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
