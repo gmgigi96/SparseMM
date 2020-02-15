@@ -2,10 +2,16 @@ using GraphBLASInterface, SuiteSparseGraphBLAS
 using SparseArrays
 using Base.Threads
 
-const trans = GrB_Descriptor()
-GrB_Descriptor_new(trans)
-GrB_Descriptor_set(trans, GrB_INP0, GrB_TRAN)
-GrB_Descriptor_set(trans, GrB_INP1, GrB_TRAN)
+const TRAN = GrB_Descriptor()
+GrB_Descriptor_new(TRAN)
+GrB_Descriptor_set(TRAN, GrB_INP0, GrB_TRAN)
+GrB_Descriptor_set(TRAN, GrB_INP1, GrB_TRAN)
+
+const DIV_INT64 = GrB_BinaryOp()
+GrB_BinaryOp_new(DIV_INT64, (//), GrB_INT64, GrB_INT64, GrB_INT64)
+
+const DIV_INT8 = GrB_BinaryOp()
+GrB_BinaryOp_new(DIV_INT8, (//), GrB_INT64, GrB_INT64, GrB_INT8)
 
 GrB_init(GrB_NONBLOCKING)
 
@@ -95,48 +101,66 @@ function v2m_int64(V::GrB_Vector{Int64}, j, M::GrB_Matrix{Int64})
 end
 
 function dmv(A::GrB_Matrix{Int64}, B::GrB_Vector{Int64})
-    @assert GrB_Matrix_ncols(A) == GrB_Vector_size(B)
     res = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
-    #tmp = [gbv_new_int64(GrB_Vector_size(B)) for i in 1:nthreads()]
+    I, J, X = GrB_Matrix_extractTuples(A)
 
-    cache = Array{GrB_Vector{Int64}}(undef, GrB_Matrix_ncols(A));
+    X1 = [GrB_Vector_extractElement(B, i) for i in I]
 
-    @inbounds @threads for j in 1:GrB_Matrix_ncols(A)
 
-        cache[j] = gbv_new_int64(GrB_Vector_size(B))
-        GrB_Col_extract(cache[j], GrB_NULL, GrB_NULL, A, GrB_ALL, 0, ZeroBasedIndex(j-1), trans)
-        GrB_eWiseMult(cache[j], GrB_NULL, GrB_NULL, GxB_TIMES_DIV_UINT64, cache[j], B, GrB_NULL)
+    I = vcat(I, I)
+    J = vcat(J, J)
+    X = vcat(X, X1)
 
-        #cache[j] = gbv_new_int64(GrB_Vector_size(B))
-        #GrB_Vector_dup(cache[j], tmp[threadid()])
+    GrB_Matrix_build(res, I, J, X, length(X), DIV_INT64)
 
-    end
-
-    @inbounds for j in eachindex(cache)
-        GrB_Col_assign(res, GrB_NULL, GrB_NULL, cache[j], GrB_ALL, 0, ZeroBasedIndex(j-1), GrB_NULL)
-    end
-    #GrB_Col_assign(res, GrB_NULL, GrB_NULL, cache[1], GrB_ALL, 0, ZeroBasedIndex(0), trans)
-    res2 = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
-    GrB_transpose(res2,GrB_NULL,GrB_NULL,res,GrB_NULL)
-    GrB_wait()  # flush pending transitions
-    #for e in tmp
-    #    GrB_Vector_free(e)
-    #end
-    for e in cache
-        GrB_Vector_free(e)
-    end
-    #GrB_Matrix_free(res)
     return res
 end
 
 function dmv(A::GrB_Matrix{Int8}, B::GrB_Vector{Int64})
+    res = gbm_new_int8(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    I, J, X = GrB_Matrix_extractTuples(A)
+
+    X1 = [GrB_Vector_extractElement(B, i) for i in I]
+
+    I = vcat(I, I)
+    J = vcat(J, J)
+    X = vcat(X, X1)
+
+    GrB_Matrix_build(res, I, J, X, length(X), DIV_INT8)
+
+    return res
+end
+
+function dmv_old(A::GrB_Matrix{Int64}, B::GrB_Vector{Int64})
+    @assert GrB_Matrix_ncols(A) == GrB_Vector_size(B)
+    res = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    tmp = gbv_new_int64(GrB_Vector_size(B))
+
+    for j in 0:GrB_Matrix_ncols(A)-1
+        # select col j from A -> tmp
+        GrB_Col_extract(tmp, GrB_NULL, GrB_NULL, A, GrB_ALL, 0, ZeroBasedIndex(j), TRAN)
+        # q .// v -> tmp
+        GrB_eWiseMult(tmp, GrB_NULL, GrB_NULL, GxB_TIMES_DIV_UINT64, tmp, B, GrB_NULL)
+        # copy tmp in res[j]
+        GrB_Col_assign(res, GrB_NULL, GrB_NULL, tmp, GrB_ALL, 0, ZeroBasedIndex(j), GrB_NULL)
+    end
+    res2 = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    GrB_transpose(res2,GrB_NULL,GrB_NULL,res,GrB_NULL)
+    GrB_wait()  # flush pending transitions
+    GrB_Vector_free(tmp)
+    GrB_Matrix_free(res)
+
+    return res2
+end
+
+function dmv_old(A::GrB_Matrix{Int8}, B::GrB_Vector{Int64})
     @assert GrB_Matrix_ncols(A) == GrB_Vector_size(B)
     res = gbm_new_int8(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
     tmp = gbv_new_int8(GrB_Vector_size(B))
-    asdhasdjhaskd
+
     for j in 0:GrB_Matrix_ncols(A)-1
         # select col j from A -> tmp
-        GrB_Col_extract(tmp, GrB_NULL, GrB_NULL, A, GrB_ALL, 0, ZeroBasedIndex(j), trans)
+        GrB_Col_extract(tmp, GrB_NULL, GrB_NULL, A, GrB_ALL, 0, ZeroBasedIndex(j), TRAN)
         # q .// v -> tmp
         GrB_eWiseMult(tmp, GrB_NULL, GrB_NULL, GxB_TIMES_DIV_UINT8, tmp, B, GrB_NULL)
         # copy tmp in res[j]
