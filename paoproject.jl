@@ -82,7 +82,14 @@ M_3 = K(CV)
 
 ∂_1 = @btime M_0 * M_1'
 ∂_2 = @btime (M_1 * M_2') .÷ 2 #	.÷ sum(M_1,dims=2)
-∂_3 = @btime ((M_2 * M_3') ./ sum(M_2,dims=2)) .÷ 1
+
+function delta_3(M_2, M_3)
+	s = sum(M_2,dims=2)
+	d = (M_2 * M_3')
+	res = d ./ s
+	return res .÷ 1
+end
+∂_3 = @btime delta_3(M_2, M_3)
 
 
 M0s  = sm2gbm(M_0)
@@ -92,7 +99,8 @@ M2s  = sm2gbm(M_2)
 M2ts = sm2gbm(sparse(M_2'))
 M3ts = sm2gbm(sparse(M_3'))
 
-d1 = @btime mm(M0s, M1ts)
+# Crash con btime
+d1 = mm(M0s, M1ts)
 d2 = d(M1s, M2ts)
 d3 = d(M2s, M3ts)
 
