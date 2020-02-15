@@ -17,7 +17,7 @@ m2 = gbm2sm(mgb)
 @assert m1 == m2
 
 s = @btime sum($A, dims=2)
-Ss = sm($As)
+Ss = sm(As)
 
 r1 = @btime collect(m1) .÷ s
 r2 = @btime dmv($mgb, $Ss)
