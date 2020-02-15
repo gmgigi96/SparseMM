@@ -104,7 +104,13 @@ function dmv(A::GrB_Matrix{Int64}, B::GrB_Vector{Int64})
     res = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
     I, J, X = GrB_Matrix_extractTuples(A)
 
-    X1 = [GrB_Vector_extractElement(B, i) for i in I]
+    function _dmv0(i)
+        x = GrB_Vector_extractElement(B, i)
+        if x != GrB_NO_VALUE; return Int64(x); end
+        return 1
+    end
+
+    X1 = map(_dmv0, I)
 
 
     I = vcat(I, I)
@@ -120,7 +126,15 @@ function dmv(A::GrB_Matrix{Int8}, B::GrB_Vector{Int64})
     res = gbm_new_int8(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
     I, J, X = GrB_Matrix_extractTuples(A)
 
-    X1 = [GrB_Vector_extractElement(B, i) for i in I]
+    function _dmv0(i)
+        x = GrB_Vector_extractElement(B, i)
+        if x != GrB_NO_VALUE; return Int8(x); end
+        return 1
+    end
+
+    X1 = map(_dmv0, I)
+
+    #X1 = [GrB_Vector_extractElement(B, i) else x for i in I]
 
     I = vcat(I, I)
     J = vcat(J, J)
