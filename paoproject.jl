@@ -3,7 +3,7 @@ Lar = LinearAlgebraicRepresentation
 using ViewerGL
 GL = ViewerGL
 using SparseArrays, DataStructures
-
+using BenchmarkTools
 
 # Dati random
 
@@ -81,7 +81,17 @@ M_2 = K(FV)
 M_3 = K(CV)
 
 ∂_1 = @btime M_0 * M_1'
-∂_2 = @btime (M_1 * M_2') .÷ 2 #	.÷ sum(M_1,dims=2)
+
+function delta_2(M_1, M_2)
+	s = sum(M_1,dims=2)
+	d = (M_1 * M_2')
+	res = d ./ s
+	return res .÷ 1
+end
+
+∂_2 = @btime delta_2(M_1, M_2) #	.÷ sum(M_1,dims=2)
+# alternativa
+#∂_2 = @btime (M_1 * M_2') .÷ 2 #	.÷ sum(M_1,dims=2)
 
 function delta_3(M_2, M_3)
 	s = sum(M_2,dims=2)
@@ -100,9 +110,9 @@ M2ts = sm2gbm(sparse(M_2'))
 M3ts = sm2gbm(sparse(M_3'))
 
 # Crash con btime
-d1 = mm(M0s, M1ts)
-d2 = d(M1s, M2ts)
-d3 = d(M2s, M3ts)
+d1 = @btime mm(M0s, M1ts)
+d2 = @btime d(M1s, M2ts)
+d3 = @btime d(M2s, M3ts)
 
 
 
