@@ -47,7 +47,7 @@ RES = dmv(BS, V)
 
 println(collect(gbm2sm(RES)))
 
-
+# ************************************************************************************** #
 
 B = sparse([2 0 4;
             2 2 0;
@@ -83,7 +83,23 @@ m2 = gbm2sm(m2)
 @assert m1 == m2
 # ************************************************************************************ #
 
-#println(collect(gbm2sm(R)))
+B = sparse([2 0 4;
+            2 2 0;
+            1 0 0])
+
+VM = sparse([1 1;
+             0 1;
+             0 0])
+Bs = sm2gbm(B)
+VMs = sm2gbm(VM)
+V = sm(VMs)
+
+@GxB_fprint(V, GxB_COMPLETE)
+
+R = dmv(Bs, V)
+
+@assert gbm2sm(R) == [1 0 2; 2 2 0; 1 0 0]
+
 
 # ************************************************************************************ #
 A = sparse([2 0 4;
@@ -138,7 +154,7 @@ M0 = K(VV); M1 = K(EV); M2 = K(FV); M3 = K(CV);
 ∂_3 = (M2 * M3') .÷ sum(M2, dims=2)
 
 M1s = sm2gbm(M1)
-M2s = sm2gbm(M2)
+M2s = sm2gbm(sparse(M2'))
 
 d2 = d(M1s, M2s)
 
@@ -163,8 +179,8 @@ function CV2EV(v)
 end
 
 VV = [[v] for v in 1:size(V, 2)]
-FV = collect(Set{Array{Int64, 1}}(cat(map(CV2FV, CV), dims=2)))
-EV = collect(Set{Array{Int64, 1}}(cat(map(CV2EV, CV), dims=1)))
+FV = collect(Set{Array{Int64, 1}}(cat(map(CV2FV, CV))))
+EV = collect(Set{Array{Int64, 1}}(cat(map(CV2EV, CV))))
 
 function K(CV)
     I = vcat([[k for h in CV[k]] for k in 1:length(CV)]...)
@@ -185,3 +201,21 @@ M2s = sm2gbm(M2)
 d2 = d(M1s, M2s)
 
 println(collect(gbm2sm(d2)))
+
+# ******************************************************************************* #
+
+V, (VV, EV, FV, CV) = Lar.cuboidGrid([64, 64, 64], true)
+
+function K(CV)
+    I = vcat([[k for h in CV[k]] for k in 1:length(CV)]...)
+    J = vcat(CV...)
+    Vals = [1 for k in 1:length(I)]
+    return SparseArrays.sparse(I, J, Vals)
+end
+
+M0 = K(VV); M1 = K(EV); M2 = K(FV); M3 = K(CV);
+
+M1s = sm2gbm(M1)
+M2s = sm2gbm(sparse(M2'))
+
+d2 = d(M1s, M2s)
