@@ -86,6 +86,14 @@ function sm(A::GrB_Matrix{Int8})
     return V
 end
 
+function v2m_int64(V::GrB_Vector{Int64}, j, M::GrB_Matrix{Int64})
+    GrB_Matrix_clear(M)
+    I, X = GrB_Vector_extractTuples(V)
+    J = ZeroBasedIndex.(fill(j, GrB_Matrix_ncols(M)))
+    GrB_Matrix_build(M, I, J, X, GrB_Matrix_ncols(M), GrB_FIRST_INT64)
+    return M
+end
+
 function dmv(A::GrB_Matrix{Int64}, B::GrB_Vector{Int64})
     @assert GrB_Matrix_ncols(A) == GrB_Vector_size(B)
     res = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
