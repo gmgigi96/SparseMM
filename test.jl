@@ -67,7 +67,7 @@ R = dmv(Bs, V)
 @assert gbm2sm(R) == [1 0 2; 2 2 0; 0 0 1]
 
 # ************************************************************************************ #
-randSparse(N) = sparse(randperm(N), randperm(N), rand([0:N], N), N, N)
+randSparse(N) = sparse(randperm(N), randperm(N), rand(0:N, N), N, N)
 
 A = randSparse(1000)
 B = randSparse(1000)
