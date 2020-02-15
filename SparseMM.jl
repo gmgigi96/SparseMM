@@ -31,7 +31,7 @@ function sm2gbm(A::SparseMatrixCSC{Int8, Int64})
     return res
 end
 
-function gbm2sm(A::GrB_Matrix{Int64})
+function gbm2sm(A::GrB_Matrix)
     I, J, X = GrB_Matrix_extractTuples(A)
     I = map(e -> e.x+1, I)
     J = map(e -> e.x+1, J)
@@ -71,7 +71,7 @@ function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     return C
 end
 
-function mm(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int64})
+function mm(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int8})
     C = gbm_new_int8(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
 
     #GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, desc)
@@ -122,7 +122,7 @@ function dmv(A::GrB_Matrix{Int64}, B::GrB_Vector{Int64})
     return res
 end
 
-function dmv(A::GrB_Matrix{Int8}, B::GrB_Vector{Int64})
+function dmv(A::GrB_Matrix{Int8}, B::GrB_Vector{Int8})
     res = gbm_new_int8(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
     I, J, X = GrB_Matrix_extractTuples(A)
 
