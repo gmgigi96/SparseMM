@@ -68,8 +68,19 @@ R = dmv(Bs, V)
 
 #println(collect(gbm2sm(R)))
 
+# ************************************************************************************ #
+A = sparse([2 0 4;
+            2 2 0;
+            0 0 2])
+V = gbv_new_int68(3)
+GrB_Vector_setElement(V,1,ZeroBasedIndex(0))
+GrB_Vector_setElement(V,1,ZeroBasedIndex(1))
+GrB_Vector_setElement(V,1,ZeroBasedIndex(2))
+V2 = v2m_int64(V, 1, A)
+As = sm2gbm(A)
+V2 = v2m_int64(V, 1, As)
 
-
+@assert bgm2sm(V2) == sparse([0 1 0; 0 1 0; 0 1 0])
 # ************************************************************************************ #
 
 VV = [[1] , [2] , [3] , [4] , [5] , [6] , [7] , [8] , [9] , [10] , [11] , [12] , [13] , [14] , [15] , [16] , [17] ,
