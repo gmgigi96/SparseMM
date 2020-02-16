@@ -1,12 +1,12 @@
-include("SparseMM.jl")
-
 using LinearAlgebraicRepresentation
 Lar = LinearAlgebraicRepresentation
 using SparseArrays, DataStructures
-using BenchmarkTools
+using Test
+
+include("LARMM.jl")
+
 
 # Dati random
-
 function random3cells(shape,npoints)
 	pointcloud = rand(3,npoints).*shape
 	grid = DataStructures.DefaultDict{Array{Int,1},Int}(0)
@@ -67,20 +67,42 @@ function K( CV )
 	return SparseArrays.sparse(I,J,Vals)
 end
 
-M_0 = []
-M_1 = []
-M_2 = []
-M_3 = []
+function delta_1(A, B)
+	return A * B'
+end
 
-function delta_3(M_2, M_3)
-	s = sum(M_2,dims=2)
-	d = (M_2 * M_3')
+function delta_2(A, B)
+	return (A * B') .÷ 2
+end
+
+function delta_3(A, B)
+	s = sum(A,dims=2)
+	d = (A * B')
 	res = d ./ s
 	return res .÷ 1
 end
 
+
+# **************************************************************************************************************** #
+# **************************************************************************************************************** #
+# *************************************************** TEST ******************************************************* #
+# **************************************************************************************************************** #
+# **************************************************************************************************************** #
+
+Vg, CVg = Lar.cuboidGrid([30,20,10])
+#V,CV = random3cells([40,20,20],4_000)
+
+VVg = [[v] for v=1:size(Vg,2)]
+FVg = collect(Set{Array{Int64,1}}(vcat(map(CV2FV,CVg)...)))
+EVg = collect(Set{Array{Int64,1}}(vcat(map(CV2EV,CVg)...)))
+
+M_0g = K(VVg)
+M_1g = K(EVg)
+M_2g = K(FVg)
+M_3g = K(CVg)
+
 function test_time_julia()
-	global M_0, M_1, M_2, M_3
+	println("***** TEST TIME JULIA *****")
 
 	V, CV = Lar.cuboidGrid([30,20,10])
 	#V,CV = random3cells([40,20,20],4_000)
@@ -96,34 +118,20 @@ function test_time_julia()
 	M_3 = K(CV)
 
 	println("Calcolo ∂_1...")
-	d_1 = @time (M_0 * M_1')
-
+	d_1 = @time delta_1(M_0, M_1)
 
 	println("Calcolo ∂_2...")
-	d_2 = @time((M_1 * M_2') .÷ 2)
+	d_2 = @time delta_2(M_1, M_2)
 
 	println("Calcolo ∂_3...")
-	d_3 = @time (delta_3(M_2, M_3))
+	d_3 = @time delta_3(M_2, M_3)
 
-	# free memory
-	M_0 = []
-	M_1 = []
-	M_2 = []
-	M_3 = []
-	println("Freeing memory...")
-	GC.gc()
-
+	return true
 end
 
-M0s  = []
-M1s  = []
-M1ts = []
-M2s  = []
-M2ts = []
-M3ts = []
 
 function test_time_sparse()
-	global M_0, M_1, M_2, M_3, M0s, M1s, M1ts, M2s, M2ts, M3ts
+	println("***** TEST TIME GBLIB *****")
 
 	V, CV = Lar.cuboidGrid([30,20,10])
 	#V,CV = random3cells([40,20,20],4_000)
@@ -137,48 +145,45 @@ function test_time_sparse()
 	M_2 = K(FV)
 	M_3 = K(CV)
 
-
-	M0s  = sm2gbm(M_0)
-	M1s  = sm2gbm(M_1)
-	M1ts = sm2gbm(sparse(M_1'))
-	M2s  = sm2gbm(M_2)
-	M2ts = sm2gbm(sparse(M_2'))
-	M3ts = sm2gbm(sparse(M_3'))
-
 	println("Calcolo ∂_1...")
-	d_1 = @time mm(M0s, M1ts)
+	d_1 = @time d1(M_0, M_1)
 
 	println("Calcolo ∂_2...")
-	d_2 = @time d2(M1s, M2ts)
+	d_2 = @time d2(M_1, M_2)
 
 	println("Calcolo ∂_3...")
-	d_3 = @time d3(M2s, M3ts)
+	d_3 = @time d3(M_2, M_3)
 
-	M_0 = []
-	M_1 = []
-	M_2 = []
-	M_3 = []
-
-	M0s  = []
-	M1s  = []
-	M1ts = []
-	M2s  = []
-	M2ts = []
-	M3ts = []
-
-	println("Freeing memory...")
-	GC.gc()
+	return true
 end
 
-println("************* TEST ARRAY JULIA *************")
-test_time_julia()
+function d1_correctness()
+	global M_0g, M_1g
+	return d1(M_0g, M_1g)
+end
 
-println()
-println("************* TEST ARRAY GSLIB *************")
-test_time_sparse()
+function d2_correctness()
+	global M_1g, M_2g
+	return d2(M_1g, M_2g)
+end
+
+function d3_correctness()
+	global M_2g, M_3g
+	return d3(M_2g, M_3g)
+end
 
 
-
+@testset "LAR tests" begin
+	@testset "time" begin
+		@test test_time_julia() == true
+		@test test_time_sparse() == true
+	end
+	@testset "correctness" begin
+		@test d1_correctness() == delta_1(M_0g, M_1g)
+		@test d2_correctness() == delta_2(M_1g, M_2g)
+		@test d3_correctness() == delta_3(M_2g, M_3g)
+	end
+end
 
 #S2 = sum(∂_3,dims=2)
 #inner = [k for k=1:length(S2) if S2[k]==2]
