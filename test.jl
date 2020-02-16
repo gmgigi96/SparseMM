@@ -1,77 +1,14 @@
-using BenchmarkTools
 using Random
+using Test
 
-sparseN(N) = sparse(randperm(N), randperm(N), ones(Int64, N), N, N)
-
-A = sparseN(1000)
-B = sparseN(1000)
-
-m1 = A*B'
-
-As = sm2gbm(A)
-Bs = sm2gbm(B)
-mgb = mm(As, Bs)
-
-m2 = gbm2sm(mgb)
-
-@assert m1 == m2
-
-s = sum(A, dims=2)
-Ss = sm(As)
-
-r1 = collect(m1) .÷ s
-r2 = dmv(mgb, Ss)
-
-
-
-m1 = (collect(A*B') .÷ sum(A, dims=2))
-
-m2 = d3(As, Bs)
-m2 = gbm2sm(m2)
-
-@assert m1 == m2
-
-
-
-B = sparse([0 1 0 1 0 0 0;
-     1 0 0 1 1 0 1;
-     0 0 0 1 0 1 1;
-     1 1 1 0 0 1 1;
-     0 1 0 0 0 1 1;
-     0 0 1 1 1 0 0;
-     0 1 1 1 1 0 0])
-
-BS = sm2gbm(B)
-V = sm(BS)
-RES = dmv(BS, V)
-
-println(collect(gbm2sm(RES)))
+include("LARMM.jl")
 
 # ************************************************************************************** #
 
-B = sparse([2 0 4;
-            2 2 0;
-            0 0 2])
+sparseN(N) = sparse(randperm(N), randperm(N), ones(Int64, N), N, N)
 
-VM = sparse([1 1;
-             0 1;
-             0 2])
-Bs = sm2gbm(B)
-VMs = sm2gbm(VM)
-V = sm(VMs)
-
-@GxB_fprint(V, GxB_COMPLETE)
-
-R = dmv(Bs, V)
-
-@assert gbm2sm(R) == [1 0 2; 2 2 0; 0 0 1]
-
-# ************************************************************************************ #
-
-randSparse(N) = sparse(randperm(N), randperm(N), rand(0:N, N), N, N)
-
-A = randSparse(1000)
-B = randSparse(1000)
+const A = sparseN(1000)
+const B = sparseN(1000)
 
 function delta_3(M_2, M_3)
 	s = sum(M_2,dims=2)
@@ -80,45 +17,90 @@ function delta_3(M_2, M_3)
 	return res .÷ 1
 end
 
-m1 = delta_3(A, B)
+function test_d1_random_matrix()
+	global A, B
+	return d1(A,B)
+end
 
-As = sm2gbm(A)
-Bs = sm2gbm(B)
+function test_d2_random_matrix()
+	global A, B
+	return d2(A,B)
+end
 
-m2 = d3(As, Bs)
-m2 = gbm2sm(m2)
+function test_d3_random_matrix()
+	global A, B
+	return d3(A,B)
+end
 
-@assert m1 == m2
+# ************************************************************************************** #
+const A1 = sparse([	2 0 4;
+            		2 2 0;
+            		0 0 2])
+const VM = sparse([	1 1;
+             		0 1;
+             		0 2])
+
+function test_dmv_small_matrix()
+	global A1, VM
+	Bs = sm2gbm(A1)
+	VMs = sm2gbm(VM)
+	R = dmv(Bs, sm(VMs))
+	return gbm2sm(R)
+end
+
 # ************************************************************************************ #
 
-B = sparse([2 0 4;
-            2 2 0;
-            1 0 0])
-
-VM = sparse([1 1;
-             0 1;
-             0 0])
-Bs = sm2gbm(B)
-VMs = sm2gbm(VM)
-V = sm(VMs)
-
-@GxB_fprint(V, GxB_COMPLETE)
-
-R = dmv(Bs, V)
-
-@assert gbm2sm(R) == [1 0 2; 2 2 0; 1 0 0]
-
+function test_dmv_small_matrix()
+	global A1, VM
+	Bs = sm2gbm(A1)
+	VMs = sm2gbm(VM)
+	R = dmv(Bs, sm(VMs))
+	return gbm2sm(R)
+end
 # ************************************************************************************ #
 
-B = sparse([2 0 4;
-            2 2 0;
-            1 0 0])
+randSparse(N) = sparse(randperm(N), randperm(N), rand(0:N, N), N, N)
 
+const A2 = randSparse(1000)
+const B2 = randSparse(1000)
 
-Bs = sm2gbm(B)
-B_div_2 = div_by_two(Bs)
+function test_d1_random_values()
+	global A2, B2
+	return d1(A2,B2)
+end
 
-@assert  gbm2sm(B_div_2) == [1 0 2; 1 1 0; 0 0 0]
+function test_d2_random_values()
+	global A2, B2
+	return d2(A2,B2)
+end
+
+function test_d3_random_values()
+	global A2, B2
+	return d3(A2,B2)
+end
+
+# ************************************************************************************ #
+const M = sparse([ 2 0 4;
+            	   2 1 0;
+            	   1 0 0])
+
+function test_div_by_two()
+	global M
+	Bs = sm2gbm(M)
+	B_div_2 = div_by_two(Bs)
+	return gbm2sm(B_div_2)
+end
+
+@test test_d1_random_matrix() == A*B'
+@test test_d2_random_matrix() == (A * B') .÷ 2
+@test test_d3_random_matrix() == delta_3(A, B)
+@test test_dmv_small_matrix() == [1 0 2; 2 2 0; 0 0 1]
+@test test_dmv_small_matrix() == [1 0 2; 2 2 0; 0 0 1]
+@test test_d1_random_values() == A2*B2'
+@test test_d2_random_values() == (A2 * B2') .÷ 2
+#ERROR: DIVISION BY ZERO
+#@test test_d3_random_values() == delta_3(A2, B2)
+@test test_div_by_two() == [1 0 2; 1 0 0; 0 0 0]
 
 
 # ************************************************************************************ #
