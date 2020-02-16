@@ -218,6 +218,14 @@ function div_by_two(A::GrB_Matrix{Int8})
     return res
 end
 
+function div_by_two!(A::GrB_Matrix{Int64})
+    GrB_apply(A, GrB_NULL, GrB_NULL, DIV_BY_TWO_INT64, A, GrB_NULL)
+end
+
+function div_by_two!(A::GrB_Matrix{Int8})
+    GrB_apply(A, GrB_NULL, GrB_NULL, DIV_BY_TWO_INT8, A, GrB_NULL)
+end
+
 function d2(A::GrB_Matrix, B::GrB_Matrix)
     C = mm(A,B, true)
     res = div_by_two(C)
