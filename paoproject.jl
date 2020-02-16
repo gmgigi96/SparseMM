@@ -96,14 +96,14 @@ function test_time_julia()
 	M_3 = K(CV)
 
 	println("Calcolo ∂_1...")
-	d_1 = @btime ($M_0 * $M_1')
+	d_1 = @time (M_0 * M_1')
 
 
 	println("Calcolo ∂_2...")
-	d_2 = @btime(($M_1 * $M_2') .÷ 2)
+	d_2 = @time((M_1 * M_2') .÷ 2)
 
 	println("Calcolo ∂_3...")
-	d_3 = @btime (delta_3($M_2, $M_3))
+	d_3 = @time (delta_3(M_2, M_3))
 
 	# free memory
 	M_0 = []
@@ -146,13 +146,13 @@ function test_time_sparse()
 	M3ts = sm2gbm(sparse(M_3'))
 
 	println("Calcolo ∂_1...")
-	d1 = @btime mm($M0s, $M1ts)
+	d_1 = @time mm(M0s, M1ts)
 
 	println("Calcolo ∂_2...")
-	d2 = @btime d2($M1s, $M2ts)
+	d_2 = @time d2(M1s, M2ts)
 
 	println("Calcolo ∂_3...")
-	d3 = @btime d3($M2s, $M3ts)
+	d_3 = @time d3(M2s, M3ts)
 
 	M_0 = []
 	M_1 = []
@@ -167,7 +167,7 @@ function test_time_sparse()
 	M3ts = []
 
 	println("Freeing memory...")
-	Gc.gc()
+	GC.gc()
 end
 
 
