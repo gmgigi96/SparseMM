@@ -67,13 +67,20 @@ R = dmv(Bs, V)
 @assert gbm2sm(R) == [1 0 2; 2 2 0; 0 0 1]
 
 # ************************************************************************************ #
-# FALLISCE
+
 randSparse(N) = sparse(randperm(N), randperm(N), rand(0:N, N), N, N)
 
 A = randSparse(1000)
 B = randSparse(1000)
 
-m1 = collect(A*B') .÷ sum(A, dims=2)
+function delta_3(M_2, M_3)
+	s = sum(M_2,dims=2)
+	d = (M_2 * M_3')
+	res = d ./ s
+	return res .÷ 1
+end
+
+m1 = delta_3(A, B)
 
 As = sm2gbm(A)
 Bs = sm2gbm(B)
@@ -114,4 +121,4 @@ B_div_2 = div_by_two(Bs)
 @assert  gbm2sm(B_div_2) == [1 0 2; 1 1 0; 0 0 0]
 
 
-# ************************************************************************************ 
+# ************************************************************************************ #
