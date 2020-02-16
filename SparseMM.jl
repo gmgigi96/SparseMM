@@ -189,24 +189,6 @@ function dmv_old(A::GrB_Matrix{Int8}, B::GrB_Vector{Int64})
     return res2
 end
 
-function sm2(A::GrB_Matrix{Int64})
-    l = size(A,1)
-    V = gbv_new_int64(l)
-    X = fill(2, l)
-    I = ZeroBasedIndex.(eachindex(X).-1)
-    GrB_Vector_build(V, I,X,l, GrB_FIRST_INT64)
-    return V
-end
-
-function sm2(A::GrB_Matrix{Int8})
-    l = size(A,1)
-    V = gbv_new_int8(l)
-    X = fill(2, l)
-    I = ZeroBasedIndex.(eachindex(X).-1)
-    GrB_Vector_build(V, I,X,l, GrB_FIRST_INT8)
-    return V
-end
-
 function d(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     #B_T = gbm_new_int64(size(B, 1), size(B, 2))
     #GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
