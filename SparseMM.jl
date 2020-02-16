@@ -7,10 +7,6 @@ GrB_Descriptor_new(TRAN)
 GrB_Descriptor_set(TRAN, GrB_INP0, GrB_TRAN)
 GrB_Descriptor_set(TRAN, GrB_INP1, GrB_TRAN)
 
-const TRAN_INP1 = GrB_Descriptor()
-GrB_Descriptor_new(TRAN_INP1)
-GrB_Descriptor_set(TRAN_INP1, GrB_INP1, GrB_TRAN)
-
 const int_div = (a, b) -> if a == 0 || b == 0 0 else a ÷ b end
 
 const DIV_INT64 = GrB_BinaryOp()
@@ -76,26 +72,18 @@ function gbv_new_int8(l)
     return V
 end
 
-function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64}, tran_b = false)
+function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     C = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
 
-    if tran_b
-        GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, TRAN_INP1)
-    else
-        GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, GrB_NULL)
-    end
+    GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, GrB_NULL)
 
     return C
 end
 
-function mm(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int8}, tran_b = false)
+function mm(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int8})
     C = gbm_new_int8(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
 
-    if tran_b
-        GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT8, A, B, TRAN_INP1)
-    else
-        GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT8, A, B, GrB_NULL)
-    end
+    GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT8, A, B, GrB_NULL)
 
     return C
 end
