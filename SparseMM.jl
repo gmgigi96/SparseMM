@@ -25,10 +25,15 @@ GrB_UnaryOp_new(DIV_BY_TWO_INT8, db2, GrB_INT8, GrB_INT8)
 
 GrB_init(GrB_NONBLOCKING)
 
-function sm2gbm(A::SparseMatrixCSC{Int64, Int64})
+function sm2gbm(A::SparseMatrixCSC{Int64, Int64}, tran=false)
     res = GrB_Matrix{Int64}()
-    GrB_Matrix_new(res, GrB_INT64, size(A, 1), size(A, 2))
-    I, J, X = SparseArrays.findnz(A)
+    if tran
+        GrB_Matrix_new(res, GrB_INT64, size(A, 2), size(A, 1))
+        J, I, X = SparseArrays.findnz(A)
+    else
+        GrB_Matrix_new(res, GrB_INT64, size(A, 1), size(A, 2))
+        I, J, X = SparseArrays.findnz(A)
+    end
     GrB_Matrix_build(res, ZeroBasedIndex.(I.-1), ZeroBasedIndex.(J.-1), X, size(X,1), GrB_FIRST_INT64)
     return res
 end
@@ -73,6 +78,7 @@ function gbv_new_int8(l)
 end
 
 function mm(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
+    @assert GrB_Matrix_ncols(A) == GrB_Matrix_nrows(B)
     C = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(B))
 
     GrB_mxm(C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, B, GrB_NULL)

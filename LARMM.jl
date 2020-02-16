@@ -2,7 +2,7 @@ include("SparseMM.jl")
 
 function d1(A, B)
     # Create GraphBLAS Matrix from A and B
-    A_GB, B_GB = sm2gbm(A), sm2gbm(sparse(B'))
+    A_GB, B_GB = sm2gbm(A), sm2gbm(B, true)
 
     # C = A * B'
     C_GB = mm(A_GB, B_GB)
@@ -19,7 +19,7 @@ end
 
 function d2(A, B)
     # Create GraphBLAS Matrix from A and B
-    A_GB, B_GB = sm2gbm(A), sm2gbm(sparse(B'))
+    A_GB, B_GB = sm2gbm(A), sm2gbm(B, true)
 
     # C = A * B'
     C_GB = mm(A_GB, B_GB)
@@ -39,7 +39,7 @@ end
 
 function d3(A, B)
     # Create GraphBLAS Matrix from A and B
-    A_GB, B_GB = sm2gbm(A), sm2gbm(sparse(B'))
+    A_GB, B_GB = sm2gbm(A), sm2gbm(B, true)
 
     # C = A * B'
     C_GB = mm(A_GB, B_GB)
