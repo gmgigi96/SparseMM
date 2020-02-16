@@ -5,7 +5,7 @@ function d1(A, B)
     A_GB, B_GB = sm2gbm(A), sm2gbm(sparse(B'))
 
     # C = A * B'
-    C_GB = mm(A_GB, B_GB, false)
+    C_GB = mm(A_GB, B_GB)
 
     res = gbm2sm(C_GB)
 
@@ -22,7 +22,7 @@ function d2(A, B)
     A_GB, B_GB = sm2gbm(A), sm2gbm(sparse(B'))
 
     # C = A * B'
-    C_GB = mm(A_GB, B_GB, false)
+    C_GB = mm(A_GB, B_GB)
 
     # C .÷ 2
     div_by_two!(C_GB)
@@ -42,7 +42,7 @@ function d3(A, B)
     A_GB, B_GB = sm2gbm(A), sm2gbm(sparse(B'))
 
     # C = A * B'
-    C_GB = mm(A_GB, B_GB, false)
+    C_GB = mm(A_GB, B_GB)
 
     # sum(A, dims=2)
     V_GB = sm(A_GB)
