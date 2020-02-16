@@ -91,16 +91,13 @@ function test_div_by_two()
 	return gbm2sm(B_div_2)
 end
 
-@test test_d1_random_matrix() == A*B'
-@test test_d2_random_matrix() == (A * B') .÷ 2
-@test test_d3_random_matrix() == delta_3(A, B)
-@test test_dmv_small_matrix() == [1 0 2; 2 2 0; 0 0 1]
-@test test_dmv_small_matrix() == [1 0 2; 2 2 0; 0 0 1]
-@test test_d1_random_values() == A2*B2'
-@test test_d2_random_values() == (A2 * B2') .÷ 2
-#ERROR: DIVISION BY ZERO
-#@test test_d3_random_values() == delta_3(A2, B2)
-@test test_div_by_two() == [1 0 2; 1 0 0; 0 0 0]
-
-
-# ************************************************************************************ #
+@testset "SparseMM test" begin
+	@test test_d1_random_matrix() == A*B'
+	@test test_d2_random_matrix() == (A * B') .÷ 2
+	@test test_d3_random_matrix() == delta_3(A, B)
+	@test test_dmv_small_matrix() == [1 0 2; 2 2 0; 0 0 1]
+	@test test_d1_random_values() == A2*B2'
+	@test test_d2_random_values() == (A2 * B2') .÷ 2
+	@test test_d3_random_values() == delta_3(A2, B2)
+	@test test_div_by_two() == [1 0 2; 1 0 0; 0 0 0]
+end
