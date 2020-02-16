@@ -1,3 +1,5 @@
+include("SparseMM.jl")
+
 using LinearAlgebraicRepresentation
 Lar = LinearAlgebraicRepresentation
 using SparseArrays, DataStructures
@@ -65,31 +67,10 @@ function K( CV )
 	return SparseArrays.sparse(I,J,Vals)
 end
 
-
-V,CV = Lar.cuboidGrid([30,20,10])
-#V,CV = random3cells([40,20,20],4_000)
-
-VV = [[v] for v=1:size(V,2)]
-FV = collect(Set{Array{Int64,1}}(vcat(map(CV2FV,CV)...)))
-EV = collect(Set{Array{Int64,1}}(vcat(map(CV2EV,CV)...)))
-
-M_0 = K(VV)
-M_1 = K(EV)
-M_2 = K(FV)
-M_3 = K(CV)
-
-∂_1 = @btime M_0 * M_1'
-
-function delta_2(M_1, M_2)
-	s = sum(M_1,dims=2)
-	d = (M_1 * M_2')
-	res = d ./ s
-	return res .÷ 1
-end
-
-#∂_2 = @btime delta_2(M_1, M_2) #	.÷ sum(M_1,dims=2)
-# alternativa
-∂_2 = @btime (M_1 * M_2') .÷ 2 #	.÷ sum(M_1,dims=2)
+M_0 = []
+M_1 = []
+M_2 = []
+M_3 = []
 
 function delta_3(M_2, M_3)
 	s = sum(M_2,dims=2)
@@ -97,32 +78,108 @@ function delta_3(M_2, M_3)
 	res = d ./ s
 	return res .÷ 1
 end
-∂_3 = @btime delta_3(M_2, M_3)
+
+function test_time_julia()
+	global M_0, M_1, M_2, M_3
+
+	V, CV = Lar.cuboidGrid([30,20,10])
+	#V,CV = random3cells([40,20,20],4_000)
+
+	VV = [[v] for v=1:size(V,2)]
+	FV = collect(Set{Array{Int64,1}}(vcat(map(CV2FV,CV)...)))
+	EV = collect(Set{Array{Int64,1}}(vcat(map(CV2EV,CV)...)))
+
+	M_0 = K(VV)
+	M_1 = K(EV)
+
+	M_2 = K(FV)
+	M_3 = K(CV)
+
+	println("Calcolo ∂_1...")
+	d_1 = @btime ($M_0 * $M_1')
 
 
-M0s  = sm2gbm(M_0)
-M1s  = sm2gbm(M_1)
-M1ts = sm2gbm(sparse(M_1'))
-M2s  = sm2gbm(M_2)
-M2ts = sm2gbm(sparse(M_2'))
-M3ts = sm2gbm(sparse(M_3'))
+	println("Calcolo ∂_2...")
+	d_2 = @btime(($M_1 * $M_2') .÷ 2)
 
-# Crash con btime
-d1 = @btime mm(M0s, M1ts)
-d2 = @btime d2(M1s, M2ts)
-d3 = @btime d3(M2s, M3ts)
+	println("Calcolo ∂_3...")
+	d_3 = @btime (delta_3($M_2, $M_3))
+
+	# free memory
+	M_0 = []
+	M_1 = []
+	M_2 = []
+	M_3 = []
+	println("Freeing memory...")
+	GC.gc()
+
+end
+
+M0s  = []
+M1s  = []
+M1ts = []
+M2s  = []
+M2ts = []
+M3ts = []
+
+function test_time_sparse()
+	global M_0, M_1, M_2, M_3, M0s, M1s, M1ts, M2s, M2ts, M3ts
+
+	V, CV = Lar.cuboidGrid([30,20,10])
+	#V,CV = random3cells([40,20,20],4_000)
+
+	VV = [[v] for v=1:size(V,2)]
+	FV = collect(Set{Array{Int64,1}}(vcat(map(CV2FV,CV)...)))
+	EV = collect(Set{Array{Int64,1}}(vcat(map(CV2EV,CV)...)))
+
+	M_0 = K(VV)
+	M_1 = K(EV)
+	M_2 = K(FV)
+	M_3 = K(CV)
+
+
+	M0s  = sm2gbm(M_0)
+	M1s  = sm2gbm(M_1)
+	M1ts = sm2gbm(sparse(M_1'))
+	M2s  = sm2gbm(M_2)
+	M2ts = sm2gbm(sparse(M_2'))
+	M3ts = sm2gbm(sparse(M_3'))
+
+	println("Calcolo ∂_1...")
+	d1 = @btime mm($M0s, $M1ts)
+
+	println("Calcolo ∂_2...")
+	d2 = @btime d2($M1s, $M2ts)
+
+	println("Calcolo ∂_3...")
+	d3 = @btime d3($M2s, $M3ts)
+
+	M_0 = []
+	M_1 = []
+	M_2 = []
+	M_3 = []
+
+	M0s  = []
+	M1s  = []
+	M1ts = []
+	M2s  = []
+	M2ts = []
+	M3ts = []
+
+	println("Freeing memory...")
+	Gc.gc()
+end
+
+
+test_time_julia()
+test_time_sparse()
 
 
 
 
-
-
-
-
-
-S2 = sum(∂_3,dims=2)
-inner = [k for k=1:length(S2) if S2[k]==2]
-outer = setdiff(collect(1:length(FV)), inner)
+#S2 = sum(∂_3,dims=2)
+#inner = [k for k=1:length(S2) if S2[k]==2]
+#outer = setdiff(collect(1:length(FV)), inner)
 
 
 # REMARK for the paper: VIP VIP VIP VIP VIP VIP VIP VIP VIP VIP VIP VIP
@@ -132,14 +189,14 @@ outer = setdiff(collect(1:length(FV)), inner)
 	V - E + F = 7161 - 20260 + 19100 == 6001 (i.e. 6000 voxels + the exterior cell !!)
 =#
 
-using ViewerGL
-GL = ViewerGL
+#using ViewerGL
+#GL = ViewerGL
 
-GL.VIEW([ GL.GLGrid(V,EV,GL.Point4d(1,1,1,1))
-         GL.GLAxis(GL.Point3d(-1,-1,-1),GL.Point3d(1,1,1)) ]);
+#GL.VIEW([ GL.GLGrid(V,EV,GL.Point4d(1,1,1,1))
+#         GL.GLAxis(GL.Point3d(-1,-1,-1),GL.Point3d(1,1,1)) ]);
 
-GL.VIEW([ GL.GLGrid(V,FV[inner],GL.Point4d(1,1,1,1))
-         GL.GLAxis(GL.Point3d(-1,-1,-1),GL.Point3d(1,1,1)) ]);
+#GL.VIEW([ GL.GLGrid(V,FV[inner],GL.Point4d(1,1,1,1))
+#         GL.GLAxis(GL.Point3d(-1,-1,-1),GL.Point3d(1,1,1)) ]);
 
-GL.VIEW([ GL.GLGrid(V,FV[outer],GL.Point4d(1,1,1,1))
-         GL.GLAxis(GL.Point3d(-1,-1,-1),GL.Point3d(1,1,1)) ]);
+#GL.VIEW([ GL.GLGrid(V,FV[outer],GL.Point4d(1,1,1,1))
+#         GL.GLAxis(GL.Point3d(-1,-1,-1),GL.Point3d(1,1,1)) ]);
