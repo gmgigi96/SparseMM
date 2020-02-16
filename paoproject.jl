@@ -1,7 +1,5 @@
 using LinearAlgebraicRepresentation
 Lar = LinearAlgebraicRepresentation
-using ViewerGL
-GL = ViewerGL
 using SparseArrays, DataStructures
 using BenchmarkTools
 
@@ -89,9 +87,9 @@ function delta_2(M_1, M_2)
 	return res .÷ 1
 end
 
-∂_2 = @btime delta_2(M_1, M_2) #	.÷ sum(M_1,dims=2)
+#∂_2 = @btime delta_2(M_1, M_2) #	.÷ sum(M_1,dims=2)
 # alternativa
-#∂_2 = @btime (M_1 * M_2') .÷ 2 #	.÷ sum(M_1,dims=2)
+∂_2 = @btime (M_1 * M_2') .÷ 2 #	.÷ sum(M_1,dims=2)
 
 function delta_3(M_2, M_3)
 	s = sum(M_2,dims=2)
@@ -111,8 +109,8 @@ M3ts = sm2gbm(sparse(M_3'))
 
 # Crash con btime
 d1 = @btime mm(M0s, M1ts)
-d2 = @btime d(M1s, M2ts)
-d3 = @btime d(M2s, M3ts)
+d2 = @btime d2(M1s, M2ts)
+d3 = @btime d3(M2s, M3ts)
 
 
 
@@ -134,7 +132,8 @@ outer = setdiff(collect(1:length(FV)), inner)
 	V - E + F = 7161 - 20260 + 19100 == 6001 (i.e. 6000 voxels + the exterior cell !!)
 =#
 
-
+using ViewerGL
+GL = ViewerGL
 
 GL.VIEW([ GL.GLGrid(V,EV,GL.Point4d(1,1,1,1))
          GL.GLAxis(GL.Point3d(-1,-1,-1),GL.Point3d(1,1,1)) ]);

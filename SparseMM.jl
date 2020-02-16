@@ -11,7 +11,15 @@ const DIV_INT64 = GrB_BinaryOp()
 GrB_BinaryOp_new(DIV_INT64, div, GrB_INT64, GrB_INT64, GrB_INT64)
 
 const DIV_INT8 = GrB_BinaryOp()
-GrB_BinaryOp_new(DIV_INT8, div, GrB_INT64, GrB_INT64, GrB_INT8)
+GrB_BinaryOp_new(DIV_INT8, div, GrB_INT8, GrB_INT8, GrB_INT8)
+
+const db2 = x -> x÷2
+
+const DIV_BY_TWO_INT64 = GrB_UnaryOp()
+GrB_UnaryOp_new(DIV_BY_TWO_INT64, db2, GrB_INT64, GrB_INT64)
+
+const DIV_BY_TWO_INT8 = GrB_UnaryOp()
+GrB_UnaryOp_new(DIV_BY_TWO_INT8, db2, GrB_INT8, GrB_INT8)
 
 GrB_init(GrB_NONBLOCKING)
 
@@ -189,7 +197,35 @@ function dmv_old(A::GrB_Matrix{Int8}, B::GrB_Vector{Int64})
     return res2
 end
 
-function d(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
+function div_by_two(A::GrB_Matrix{Int64})
+    res = gbm_new_int64(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    GrB_apply(res, GrB_NULL, GrB_NULL, DIV_BY_TWO_INT64, A, GrB_NULL)
+    return res
+end
+
+function div_by_two(A::GrB_Matrix{Int8})
+    res = gbm_new_int8(GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
+    GrB_apply(res, GrB_NULL, GrB_NULL, DIV_BY_TWO_INT8, A, GrB_NULL)
+    return res
+end
+
+function d2(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
+    #B_T = gbm_new_int64(size(B, 1), size(B, 2))
+    #GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
+    C = mm(A,B)
+    res = div_by_two(C)
+    return res
+end
+
+function d2(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int8})
+    #B_T = gbm_new_int64(size(B, 1), size(B, 2))
+    #GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
+    C = mm(A,B)
+    res = div_by_two(C)
+    return res
+end
+
+function d3(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     #B_T = gbm_new_int64(size(B, 1), size(B, 2))
     #GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
     C = mm(A,B)
@@ -198,7 +234,7 @@ function d(A::GrB_Matrix{Int64}, B::GrB_Matrix{Int64})
     return res
 end
 
-function d(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int8})
+function d3(A::GrB_Matrix{Int8}, B::GrB_Matrix{Int8})
     #B_T = gbm_new_int8(size(B, 1), size(B, 2))
     #GrB_transpose(B_T,GrB_NULL,GrB_NULL,B,GrB_NULL)
     C = mm(A,B)
