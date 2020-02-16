@@ -170,8 +170,11 @@ function test_time_sparse()
 	GC.gc()
 end
 
-
+println("************* TEST ARRAY JULIA *************")
 test_time_julia()
+
+println()
+println("************* TEST ARRAY GSLIB *************")
 test_time_sparse()
 
 
