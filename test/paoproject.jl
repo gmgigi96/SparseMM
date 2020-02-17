@@ -1,9 +1,11 @@
+push!(LOAD_PATH, "../src/")
+push!(LOAD_PATH, "./src/")
+
 using LinearAlgebraicRepresentation
 Lar = LinearAlgebraicRepresentation
 using SparseArrays, DataStructures
 using Test
-
-include("../src/LARMM.jl")
+using LARMM
 
 
 # Dati random
@@ -146,30 +148,30 @@ function test_time_sparse()
 	M_3 = K(CV)
 
 	println("Calcolo ∂_1...")
-	d_1 = @time d1(M_0, M_1)
+	d_1 = @time LARMM.d1(M_0, M_1)
 
 	println("Calcolo ∂_2...")
-	d_2 = @time d2(M_1, M_2)
+	d_2 = @time LARMM.d2(M_1, M_2)
 
 	println("Calcolo ∂_3...")
-	d_3 = @time d3(M_2, M_3)
+	d_3 = @time LARMM.d3(M_2, M_3)
 
 	return true
 end
 
 function d1_correctness()
 	global M_0g, M_1g
-	return d1(M_0g, M_1g)
+	return LARMM.d1(M_0g, M_1g)
 end
 
 function d2_correctness()
 	global M_1g, M_2g
-	return d2(M_1g, M_2g)
+	return LARMM.d2(M_1g, M_2g)
 end
 
 function d3_correctness()
 	global M_2g, M_3g
-	return d3(M_2g, M_3g)
+	return LARMM.d3(M_2g, M_3g)
 end
 
 

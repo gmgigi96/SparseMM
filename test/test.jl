@@ -1,7 +1,12 @@
+push!(LOAD_PATH, "../src/")
+push!(LOAD_PATH, "./src/")
+
 using Random
 using Test
+using LARMM
+using SparseMM
+using SparseArrays
 
-include("../src/LARMM.jl")
 
 # ************************************************************************************** #
 
@@ -23,17 +28,17 @@ end
 
 function test_d1_random_matrix()
 	global A, B
-	return d1(A,B)
+	return LARMM.d1(A,B)
 end
 
 function test_d2_random_matrix()
 	global A, B
-	return d2(A,B)
+	return LARMM.d2(A,B)
 end
 
 function test_d3_random_matrix()
 	global A, B
-	return d3(A,B)
+	return LARMM.d3(A,B)
 end
 
 sparseN_int8(N) = sparse(randperm(N), randperm(N), ones(Int8, N), N, N)
@@ -54,17 +59,17 @@ end
 
 function test_d1_random_matrix_int8()
 	global A8, B8
-	return d1(A8,B8)
+	return LARMM.d1(A8,B8)
 end
 
 function test_d2_random_matrix_int8()
 	global A8, B8
-	return d2(A8,B8)
+	return LARMM.d2(A8,B8)
 end
 
 function test_d3_random_matrix_int8()
 	global A8, B8
-	return d3(A8,B8)
+	return LARMM.d3(A8,B8)
 end
 
 
@@ -89,17 +94,17 @@ end
 
 function test_d1_random_matrix_rect()
 	global A1r, B1r
-	return d1(A1r,B1r)
+	return LARMM.d1(A1r,B1r)
 end
 
 function test_d2_random_matrix_rect()
 	global A1r, B1r
-	return d2(A1r,B1r)
+	return LARMM.d2(A1r,B1r)
 end
 
 function test_d3_random_matrix_rect()
 	global A1r, B1r
-	return d3(A1r,B1r)
+	return LARMM.d3(A1r,B1r)
 end
 
 sparseNM_int8(N,M) = if N < M; sparse(randperm(N), randperm(N), ones(Int8, N), N, M); else
@@ -121,17 +126,17 @@ end
 
 function test_d1_random_matrix_rect_int8()
 	global A1r_2, B1r_2
-	return d1(A1r_2,B1r_2)
+	return LARMM.d1(A1r_2,B1r_2)
 end
 
 function test_d2_random_matrix_rect_int8()
 	global A1r_2, B1r_2
-	return d2(A1r_2,B1r_2)
+	return LARMM.d2(A1r_2,B1r_2)
 end
 
 function test_d3_random_matrix_rect_int8()
 	global A1r_2, B1r_2
-	return d3(A1r_2,B1r_2)
+	return LARMM.d3(A1r_2,B1r_2)
 end
 
 # ************************************************************************************** #
@@ -151,18 +156,18 @@ const VM2 = sparse(Int8[1 1;
 
 function test_dmv_small_matrix()
 	global A12, VM2
-	Bs = sm2gbm(A12)
-	VMs = sm2gbm(VM2)
-	R = dmv(Bs, sm(VMs))
-	return gbm2sm(R)
+	Bs = SparseMM.sm2gbm(A12)
+	VMs = SparseMM.sm2gbm(VM2)
+	R = SparseMM.dmv(Bs, SparseMM.sm(VMs))
+	return SparseMM.gbm2sm(R)
 end
 
 function test_dmv_small_matrix_int8()
 	global A1, VM
-	Bs = sm2gbm(A1)
-	VMs = sm2gbm(VM)
-	R = dmv(Bs, sm(VMs))
-	return gbm2sm(R)
+	Bs = SparseMM.sm2gbm(A1)
+	VMs = SparseMM.sm2gbm(VM)
+	R = SparseMM.dmv(Bs, SparseMM.sm(VMs))
+	return SparseMM.gbm2sm(R)
 end
 
 # ************************************************************************************ #
@@ -177,18 +182,18 @@ const A1r3 = sparse(Int8[2 0 4 1;
 
 function test_dmv_small_matrix_rect()
 	global A1r2, VM
-	Bs = sm2gbm(A1r2)
-	VMs = sm2gbm(VM)
-	R = dmv(Bs, sm(VMs))
-	return gbm2sm(R)
+	Bs = SparseMM.sm2gbm(A1r2)
+	VMs = SparseMM.sm2gbm(VM)
+	R = SparseMM.dmv(Bs, SparseMM.sm(VMs))
+	return SparseMM.gbm2sm(R)
 end
 
 function test_dmv_small_matrix_rect_int8()
 	global A1r3, VM2
-	Bs = sm2gbm(A1r3)
-	VMs = sm2gbm(VM2)
-	R = dmv(Bs, sm(VMs))
-	return gbm2sm(R)
+	Bs = SparseMM.sm2gbm(A1r3)
+	VMs = SparseMM.sm2gbm(VM2)
+	R = SparseMM.dmv(Bs, SparseMM.sm(VMs))
+	return SparseMM.gbm2sm(R)
 end
 
 # ************************************************************************************ #
@@ -200,17 +205,17 @@ const B2 = randSparse(1000)
 
 function test_d1_random_values()
 	global A2, B2
-	return d1(A2,B2)
+	return LARMM.d1(A2,B2)
 end
 
 function test_d2_random_values()
 	global A2, B2
-	return d2(A2,B2)
+	return LARMM.d2(A2,B2)
 end
 
 function test_d3_random_values()
 	global A2, B2
-	return d3(A2,B2)
+	return LARMM.d3(A2,B2)
 end
 
 # ************************************************************************************ #
@@ -223,17 +228,17 @@ const B2r = randSparseNM(100, 50)
 
 function test_d1_random_values_rect()
 	global A2r, B2r
-	return d1(A2r,B2r)
+	return LARMM.d1(A2r,B2r)
 end
 
 function test_d2_random_values_rect()
 	global A2r, B2r
-	return d2(A2r,B2r)
+	return LARMM.d2(A2r,B2r)
 end
 
 function test_d3_random_values_rect()
 	global A2r, B2r
-	return d3(A2r,B2r)
+	return LARMM.d3(A2r,B2r)
 end
 
 # ************************************************************************************ #
@@ -244,9 +249,9 @@ const M = sparse([ 2 0 4;
 
 function test_div_by_two()
 	global M
-	Bs = sm2gbm(M)
-	B_div_2 = div_by_two(Bs)
-	return gbm2sm(B_div_2)
+	Bs = SparseMM.sm2gbm(M)
+	B_div_2 = SparseMM.div_by_two(Bs)
+	return SparseMM.gbm2sm(B_div_2)
 end
 
 # ************************************************************************************ #
@@ -257,9 +262,9 @@ const Mr = sparse([ 2 0 4 3;
 
 function test_div_by_two_rect()
 	global Mr
-	Bs = sm2gbm(Mr)
-	B_div_2 = div_by_two(Bs)
-	return gbm2sm(B_div_2)
+	Bs = SparseMM.sm2gbm(Mr)
+	B_div_2 = SparseMM.div_by_two(Bs)
+	return SparseMM.gbm2sm(B_div_2)
 end
 
 # ************************************************************************************ #
@@ -270,9 +275,9 @@ const Mr1 = sparse(Int8[2 0 4 3;
 
 function test_div_by_two_rect_int8()
 	global Mr1
-	Bs = sm2gbm(Mr1)
-	B_div_2 = div_by_two(Bs)
-	return gbm2sm(B_div_2)
+	Bs = SparseMM.sm2gbm(Mr1)
+	B_div_2 = SparseMM.div_by_two(Bs)
+	return SparseMM.gbm2sm(B_div_2)
 end
 
 # ************************************************************************************ #
@@ -283,9 +288,9 @@ const Mr2 = sparse(Int8[2 0 4;
 
 function test_div_by_two_int8()
 	global Mr2
-	Bs = sm2gbm(Mr2)
-	B_div_2 = div_by_two(Bs)
-	return gbm2sm(B_div_2)
+	Bs = SparseMM.sm2gbm(Mr2)
+	B_div_2 = SparseMM.div_by_two(Bs)
+	return SparseMM.gbm2sm(B_div_2)
 end
 
 # ************************************************************************************ #
@@ -297,7 +302,7 @@ const B3 = sparse([0 0 0; 0 1 0; 0 0 0])
 
 function test_d3_random_values_2()
 	global A3, B3
-	return d3(A3,B3)
+	return LARMM.d3(A3,B3)
 end
 
 @testset "Test" begin

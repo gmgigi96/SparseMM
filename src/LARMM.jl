@@ -1,5 +1,6 @@
 module LARMM
 
+using GraphBLASInterface, SuiteSparseGraphBLAS
 using SparseMM
 
 export d1, d2, d3
