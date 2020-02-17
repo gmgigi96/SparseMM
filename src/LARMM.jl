@@ -1,5 +1,14 @@
 include("SparseMM.jl")
 
+"""
+    d1(A,B)
+
+Compute ``∂_1 = M_0 * M_1'``
+
+# Arguments
+- `A` : Sparse Matrix
+- `B` : Sparse Matrix
+"""
 function d1(A, B)
     # Create GraphBLAS Matrix from A and B
     A_GB, B_GB = sm2gbm(A), sm2gbm(B, true)
@@ -17,6 +26,15 @@ function d1(A, B)
     return res
 end
 
+"""
+    d2(A,B)
+
+Compute ``∂_2 = (A * B') .÷ sum(A, dims=2)``
+
+# Arguments
+- `A` : Sparse Matrix
+- `B` : Sparse Matrix
+"""
 function d2(A, B)
     # Create GraphBLAS Matrix from A and B
     A_GB, B_GB = sm2gbm(A), sm2gbm(B, true)
@@ -37,6 +55,15 @@ function d2(A, B)
     return res
 end
 
+"""
+    d3(A,B)
+
+Compute ``∂_3 = (A * B') .÷ sum(A, dims=2)``
+
+# Arguments
+- `A` : Sparse Matrix
+- `B` : Sparse Matrix
+"""
 function d3(A, B)
     # Create GraphBLAS Matrix from A and B
     A_GB, B_GB = sm2gbm(A), sm2gbm(B, true)
