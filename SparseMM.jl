@@ -77,7 +77,7 @@ function dmv(A::GrB_Matrix{T}, B::GrB_Vector{T}) where T
     J = vcat(J, J)
     X = vcat(X, X1)
 
-    GrB_Matrix_build(res, I, J, X, length(X), DIV_INT64)    # GUARDA QUI
+    GrB_Matrix_build(res, I, J, X, length(X), DIV(T))
 
     return res
 end
@@ -106,12 +106,12 @@ end
 
 function div_by_two(A::GrB_Matrix{T}) where T
     res = gbm_new(T, GrB_Matrix_nrows(A), GrB_Matrix_ncols(A))
-    GrB_apply(res, GrB_NULL, GrB_NULL, DIV_BY_TWO_INT64, A, GrB_NULL)           # GUARDA QUI
+    GrB_apply(res, GrB_NULL, GrB_NULL, DIV_BY_TWO(T), A, GrB_NULL)
     return res
 end
 
 function div_by_two!(A::GrB_Matrix{T}) where T
-    GrB_apply(A, GrB_NULL, GrB_NULL, DIV_BY_TWO_INT64, A, GrB_NULL)             # GUARDA QUI
+    GrB_apply(A, GrB_NULL, GrB_NULL, DIV_BY_TWO(T), A, GrB_NULL)
 end
 
 function d2(A::GrB_Matrix, B::GrB_Matrix)

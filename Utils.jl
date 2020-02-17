@@ -7,19 +7,19 @@ GrB_Descriptor_set(TRAN, GrB_INP1, GrB_TRAN)
 
 const int_div = (a, b) -> if a == 0 || b == 0 0 else a ÷ b end
 
-const DIV_INT64 = GrB_BinaryOp()
-GrB_BinaryOp_new(DIV_INT64, int_div, GrB_INT64, GrB_INT64, GrB_INT64)
-
-const DIV_INT8 = GrB_BinaryOp()
-GrB_BinaryOp_new(DIV_INT8, int_div, GrB_INT8, GrB_INT8, GrB_INT8)
+@inline function DIV(T)
+    DIV_OP = GrB_BinaryOp()
+    GrB_BinaryOp_new(DIV_OP, int_div, GrB_type(T), GrB_type(T), GrB_type(T))
+    return DIV_OP
+end
 
 const db2 = x -> x÷2
 
-const DIV_BY_TWO_INT64 = GrB_UnaryOp()
-GrB_UnaryOp_new(DIV_BY_TWO_INT64, db2, GrB_INT64, GrB_INT64)
-
-const DIV_BY_TWO_INT8 = GrB_UnaryOp()
-GrB_UnaryOp_new(DIV_BY_TWO_INT8, db2, GrB_INT8, GrB_INT8)
+@inline function DIV_BY_TWO(T)
+    DIV_BY_TWO_OP = GrB_UnaryOp()
+    GrB_UnaryOp_new(DIV_BY_TWO_OP, db2, GrB_type(T), GrB_type(T))
+    return DIV_BY_TWO_OP
+end
 
 @inline function GrB_type(T)
     return eval(Symbol("GrB_", uppercase(string(typeof(zero(T))))))
