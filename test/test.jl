@@ -36,6 +36,38 @@ function test_d3_random_matrix()
 	return d3(A,B)
 end
 
+sparseN_int8(N) = sparse(randperm(N), randperm(N), ones(Int8, N), N, N)
+
+const A8 = sparseN_int8(1000)
+const B8 = sparseN_int8(1000)
+
+function delta_3(M_2, M_3)
+	s = sum(M_2,dims=2)
+	d = (M_2 * M_3')
+	res = d ./ s
+	res = res .÷ 1
+
+	res = map(x -> if isnan(x) 0 else x end, res)
+
+	return res
+end
+
+function test_d1_random_matrix_int8()
+	global A8, B8
+	return d1(A8,B8)
+end
+
+function test_d2_random_matrix_int8()
+	global A8, B8
+	return d2(A8,B8)
+end
+
+function test_d3_random_matrix_int8()
+	global A8, B8
+	return d3(A8,B8)
+end
+
+
 # ************************************************************************************** #
 
 sparseNM(N,M) = if N < M; sparse(randperm(N), randperm(N), ones(Int64, N), N, M); else
@@ -70,6 +102,38 @@ function test_d3_random_matrix_rect()
 	return d3(A1r,B1r)
 end
 
+sparseNM_int8(N,M) = if N < M; sparse(randperm(N), randperm(N), ones(Int8, N), N, M); else
+	sparse(randperm(M), randperm(M), ones(Int8, M), N, M); end
+
+const A1r_2 = sparseNM_int8(3, 4)
+const B1r_2 = sparseNM_int8(5, 4)
+
+function delta_3(M_2, M_3)
+	s = sum(M_2,dims=2)
+	d = (M_2 * M_3')
+	res = d ./ s
+	res = res .÷ 1
+
+	res = map(x -> if isnan(x) 0 else x end, res)
+
+	return res
+end
+
+function test_d1_random_matrix_rect_int8()
+	global A1r_2, B1r_2
+	return d1(A1r_2,B1r_2)
+end
+
+function test_d2_random_matrix_rect_int8()
+	global A1r_2, B1r_2
+	return d2(A1r_2,B1r_2)
+end
+
+function test_d3_random_matrix_rect_int8()
+	global A1r_2, B1r_2
+	return d3(A1r_2,B1r_2)
+end
+
 # ************************************************************************************** #
 const A1 = sparse([	2 0 4;
             		2 2 0;
@@ -78,7 +142,22 @@ const VM = sparse([	1 1;
              		0 1;
              		0 2])
 
+const A12 = sparse(Int8[2 0 4;
+            			2 2 0;
+            			0 0 2])
+const VM2 = sparse(Int8[1 1;
+             			0 1;
+             			0 2])
+
 function test_dmv_small_matrix()
+	global A12, VM2
+	Bs = sm2gbm(A12)
+	VMs = sm2gbm(VM2)
+	R = dmv(Bs, sm(VMs))
+	return gbm2sm(R)
+end
+
+function test_dmv_small_matrix_int8()
 	global A1, VM
 	Bs = sm2gbm(A1)
 	VMs = sm2gbm(VM)
@@ -92,10 +171,22 @@ const A1r2 = sparse([2 0 4 1;
             		 2 2 0 2;
             		 0 0 2 0])
 
+const A1r3 = sparse(Int8[2 0 4 1;
+         		 		 2 2 0 2;
+         		 		 0 0 2 0])
+
 function test_dmv_small_matrix_rect()
 	global A1r2, VM
 	Bs = sm2gbm(A1r2)
 	VMs = sm2gbm(VM)
+	R = dmv(Bs, sm(VMs))
+	return gbm2sm(R)
+end
+
+function test_dmv_small_matrix_rect_int8()
+	global A1r3, VM2
+	Bs = sm2gbm(A1r3)
+	VMs = sm2gbm(VM2)
 	R = dmv(Bs, sm(VMs))
 	return gbm2sm(R)
 end
@@ -173,6 +264,32 @@ end
 
 # ************************************************************************************ #
 
+const Mr1 = sparse(Int8[2 0 4 3;
+            	    	2 1 0 0;
+            	    	1 0 0 5])
+
+function test_div_by_two_rect_int8()
+	global Mr1
+	Bs = sm2gbm(Mr1)
+	B_div_2 = div_by_two(Bs)
+	return gbm2sm(B_div_2)
+end
+
+# ************************************************************************************ #
+
+const Mr2 = sparse(Int8[2 0 4;
+            	    	2 1 0;
+            	    	1 0 0])
+
+function test_div_by_two_int8()
+	global Mr2
+	Bs = sm2gbm(Mr2)
+	B_div_2 = div_by_two(Bs)
+	return gbm2sm(B_div_2)
+end
+
+# ************************************************************************************ #
+
 randSparse(N) = sparse(randperm(N), randperm(N), rand(0:N, N), N, N)
 
 const A3 = sparse([0 3 0; 2 0 0; 0 0 0])
@@ -189,20 +306,31 @@ end
 		@test test_d1_random_matrix() == A*B'
 		@test test_d2_random_matrix() == (A * B') .÷ 2
 		@test test_d3_random_matrix() == delta_3(A, B)
+		@test test_d1_random_matrix_int8() == A8*B8'
+		@test test_d2_random_matrix_int8() == (A8 * B8') .÷ 2
+		@test test_d3_random_matrix_int8() == delta_3(A8, B8)
 		@test test_dmv_small_matrix() == [1 0 2; 2 2 0; 0 0 1]
+		@test test_dmv_small_matrix_int8() == [1 0 2; 2 2 0; 0 0 1]
 		@test test_d1_random_values() == A2*B2'
 		@test test_d2_random_values() == (A2 * B2') .÷ 2
 		@test test_d3_random_values() == delta_3(A2, B2)
 		@test test_div_by_two() == [1 0 2; 1 0 0; 0 0 0]
+		@test test_div_by_two_int8() == [1 0 2; 1 0 0; 0 0 0]
 	end
 	@testset "SparseMM not squared matrices" begin
 		@test test_d3_random_values_2() == delta_3(A3, B3)
 		@test test_d1_random_matrix_rect() == A1r*B1r'
 		@test test_d2_random_matrix_rect() == (A1r * B1r') .÷ 2
 		@test test_d3_random_matrix_rect() == delta_3(A1r, B1r)
+		@test test_d1_random_matrix_rect_int8() == A1r_2*B1r_2'
+		@test test_d2_random_matrix_rect_int8() == (A1r_2 * B1r_2') .÷ 2
+		@test test_d3_random_matrix_rect_int8() == delta_3(A1r_2, B1r_2)
 		@test test_dmv_small_matrix_rect() == [1 0 2 0; 2 2 0 2; 0 0 1 0]
+		@test test_dmv_small_matrix_rect_int8() == [1 0 2 0; 2 2 0 2; 0 0 1 0]
 		@test test_d1_random_values_rect() == A2r*B2r'
 		@test test_d2_random_values_rect() == (A2r * B2r') .÷ 2
 		@test test_d3_random_values_rect() == delta_3(A2r, B2r)
+		@test test_div_by_two_rect() == [1 0 2 1; 1 0 0 0; 0 0 0 2]
+		@test test_div_by_two_rect_int8() == [1 0 2 1; 1 0 0 0; 0 0 0 2]
 	end
 end
