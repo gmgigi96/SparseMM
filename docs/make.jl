@@ -1,8 +1,5 @@
-push!(LOAD_PATH, "../src/")
-using Documenter, LARMM, SparseMM
+push!(LOAD_PATH, "../src")
 
-makedocs(
-    format = Documenter.HTML(),
-    sitename = "SparseMatrixMoltiplication",
-    modules = [LARMM. SparseMM],
-)
+using Documenter, SparseMM, LARMM
+
+makedocs(sitename="LARMM and SparseMM documentation")
