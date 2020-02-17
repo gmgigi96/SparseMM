@@ -3,7 +3,7 @@ Lar = LinearAlgebraicRepresentation
 using SparseArrays, DataStructures
 using Test
 
-include("LARMM.jl")
+include("../src/LARMM.jl")
 
 
 # Dati random

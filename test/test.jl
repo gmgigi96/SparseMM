@@ -1,7 +1,7 @@
 using Random
 using Test
 
-include("LARMM.jl")
+include("../src/LARMM.jl")
 
 # ************************************************************************************** #
 
