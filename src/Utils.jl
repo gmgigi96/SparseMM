@@ -1,4 +1,8 @@
+module Utils
+
 using GraphBLASInterface, SuiteSparseGraphBLAS
+
+export TRAN, DIV, DIV_BY_TWO, GrB_type, GrB_op, GxB_op, GxB_monoid
 
 const TRAN = GrB_Descriptor()
 GrB_Descriptor_new(TRAN)
@@ -35,4 +39,6 @@ end
 
 @inline function GxB_monoid(fun_name, T)
     return eval(Symbol("GxB_", fun_name, "_", uppercase(string(typeof(zero(T)))), "_MONOID"))
+end
+
 end

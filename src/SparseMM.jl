@@ -1,8 +1,11 @@
+module SparseMM
+
 using GraphBLASInterface, SuiteSparseGraphBLAS
 using SparseArrays
 using Base.Threads
+using Utils
 
-include("Utils.jl")
+export sm2gbm, gbm2sm, gbm_new, gbv_new, mm, sm, v2m, dmv, div_by_two, div_by_two!
 
 GrB_init(GrB_NONBLOCKING)
 
@@ -54,6 +57,11 @@ function gbm_new(T, r, c)
     return C
 end
 
+"""
+    gbv_new(T, l)
+
+Create a GraphBLAS vector with `l` element of type `T`.
+"""
 function gbv_new(T, l)
     V = GrB_Vector{T}()
     GrB_Vector_new(V, GrB_type(T), l)
@@ -182,4 +190,6 @@ function d3(A::GrB_Matrix, B::GrB_Matrix)
     V = sm(A)
     res = dmv(C, V)
     return res
+end
+
 end

@@ -1,4 +1,8 @@
-include("SparseMM.jl")
+module LARMM
+
+using SparseMM
+
+export d1, d2, d3
 
 """
     d1(A,B)
@@ -87,4 +91,6 @@ function d3(A, B)
     GrB_Vector_free(V_GB)
 
     return res
+end
+
 end
