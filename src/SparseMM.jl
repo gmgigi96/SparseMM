@@ -196,9 +196,13 @@ function __msc0(D::GrB_Matrix{T}, cols, r) where T
 
 end
 
-function msc(D::GrB_Matrix{T}, v) where T
+function msc(D::GrB_Matrix{T}, v, sort_list=false) where T
     r = GrB_Matrix_nrows(D)
-    res = gbm_new(T, r, length(v))    
+    res = gbm_new(T, r, length(v))
+    
+    if sort_list
+        v = sort(v)
+    end
 
     X = T[]
     J = ZeroBasedIndex[]
@@ -217,10 +221,6 @@ function msc(D::GrB_Matrix{T}, v) where T
     return res
 
 end
-
-
-
-
 
 function d2(A::GrB_Matrix, B::GrB_Matrix)
     C = mm(A,B, true)
