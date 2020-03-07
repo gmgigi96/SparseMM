@@ -5,7 +5,7 @@ using SparseArrays
 using Base.Threads
 using Utils
 
-export sm2gbm, gbm2sm, gbm_new, gbv_new, mm, sm, v2m, dmv, div_by_two, div_by_two!
+export sm2gbm, gbm2sm, gbm_new, gbv_new, mm, sm, v2m, dmv, div_by_two, div_by_two!, msc
 
 GrB_init(GrB_NONBLOCKING)
 
@@ -179,6 +179,49 @@ function div_by_two!(A::GrB_Matrix{T}) where T
     GrB_apply(A, GrB_NULL, GrB_NULL, DIV_BY_TWO(T), A, GrB_NULL)
 end
 
+function __msc0(D::GrB_Matrix{T}, cols, r) where T
+    Ires, Xres = ZeroBasedIndex[], T[]
+    vec = gbv_new(T, r)
+
+    for j in cols
+        GrB_Col_extract(vec, GrB_NULL, GrB_NULL, D, GrB_ALL, 0, ZeroBasedIndex(j-1), GrB_NULL)
+        I, X = GrB_Vector_extractTuples(vec)
+        append!(Ires, I)
+        append!(Xres, X)
+        GrB_Vector_clear(vec)
+    end
+
+    GrB_free(vec)
+    return Ires, Xres
+
+end
+
+function msc(D::GrB_Matrix{T}, v) where T
+    r = GrB_Matrix_nrows(D)
+    res = gbm_new(T, r, length(v))    
+
+    X = T[]
+    J = ZeroBasedIndex[]
+    I = ZeroBasedIndex[]
+
+    for (i, c) in enumerate(v)
+        _I, _X = __msc0(D, c, r)
+
+        append!(I, _I)
+        append!(X, _X)
+        append!(J, fill(i-1, length(_X)))
+    end
+
+    GrB_Matrix_build(res, I, J, X, length(X), GrB_op("PLUS", T))
+
+    return res
+
+end
+
+
+
+
+
 function d2(A::GrB_Matrix, B::GrB_Matrix)
     C = mm(A,B, true)
     res = div_by_two(C)
@@ -193,3 +236,4 @@ function d3(A::GrB_Matrix, B::GrB_Matrix)
 end
 
 end
+
