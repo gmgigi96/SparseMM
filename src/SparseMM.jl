@@ -5,7 +5,7 @@ using SparseArrays
 using Base.Threads
 using Utils
 
-export sm2gbm, gbm2sm, gbm_new, gbv_new, mm, sm, v2m, dmv, div_by_two, div_by_two!, msc
+export sm2gbm, gbm2sm, gbm_new, gbv_new, mm, sm, v2m, dmv, div_by_two, div_by_two!, msc, EVcongruence
 
 GrB_init(GrB_NONBLOCKING)
 
@@ -220,6 +220,42 @@ function msc(D::GrB_Matrix{T}, v, sort_list=false) where T
 
     return res
 
+end
+
+function EVcongruence(Delta_0::GrB_Matrix{T}, vclasses) where T
+    copEV = msc(Delta_0, vclasses)
+
+    function econgruence(copEV::GrB_Matrix{T}) where T
+        ec = Dict{ZeroBasedIndex, Array{ZeroBasedIndex, 1}}()
+        foreach(zip(GrB_Matrix_extractTuples(copEV)...)) do (i, j, _)
+            push!(get!(ec, i, []), j)
+        end
+        c = Dict{Array{ZeroBasedIndex, 1}, Array{ZeroBasedIndex, 1}}()
+        for (k, v) in ec
+            push!(get!(c, v, []), k)
+        end
+        eclasses = [sort(v) for (k, v) in c]
+        sort!(eclasses)
+        return eclasses
+    end
+    
+    newedges = first.(econgruence(copEV))
+    
+    res = gbm_new(T, GrB_Matrix_ncols(copEV), length(newedges))
+
+    I, J, X = GrB_Matrix_extractTuples(copEV)
+    _I, _J, _X = ZeroBasedIndex[], ZeroBasedIndex[], T[]
+
+    for (i, j, x) in zip(I, J, X)
+        if i in newedges
+            push!(_J, findfirst(x -> x==i ,newedges)-1)
+            push!(_I, j)
+            push!(_X, x)
+        end
+    end
+
+    GrB_Matrix_build(res, _I, _J, _X, length(_X), GrB_op("FIRST", T))
+    return res
 end
 
 function d2(A::GrB_Matrix, B::GrB_Matrix)
